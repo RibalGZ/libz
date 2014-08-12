@@ -29,31 +29,30 @@ const char inflate_copyright[] =
    table index bits.  It will differ if the request is greater than the
    longest code or if it is less than the shortest code.
  */
-int ZLIB_INTERNAL inflate_table(type, lens, codes, table, bits, work)
-codetype type;
-unsigned short FAR *lens;
-unsigned codes;
-code FAR * FAR *table;
-unsigned FAR *bits;
-unsigned short FAR *work;
+int ZLIB_INTERNAL inflate_table(codetype type,
+                                unsigned short *lens,
+                                unsigned int codes,
+                                code **table,
+                                unsigned int *bits,
+                                unsigned short *work)
 {
-    unsigned len;               /* a code's length in bits */
-    unsigned sym;               /* index of code symbols */
-    unsigned min, max;          /* minimum and maximum code lengths */
-    unsigned root;              /* number of index bits for root table */
-    unsigned curr;              /* number of index bits for current table */
-    unsigned drop;              /* code bits to drop for sub-table */
+    unsigned int len;           /* a code's length in bits */
+    unsigned int sym;           /* index of code symbols */
+    unsigned int min, max;      /* minimum and maximum code lengths */
+    unsigned int root;          /* number of index bits for root table */
+    unsigned int curr;          /* number of index bits for current table */
+    unsigned int drop;          /* code bits to drop for sub-table */
     int left;                   /* number of prefix codes available */
-    unsigned used;              /* code entries in table used */
-    unsigned huff;              /* Huffman code */
-    unsigned incr;              /* for incrementing code, index */
-    unsigned fill;              /* index for replicating entries */
-    unsigned low;               /* low bits for current root entry */
-    unsigned mask;              /* mask for low root bits */
+    unsigned int used;          /* code entries in table used */
+    unsigned int huff;          /* Huffman code */
+    unsigned int incr;          /* for incrementing code, index */
+    unsigned int fill;          /* index for replicating entries */
+    unsigned int low;           /* low bits for current root entry */
+    unsigned int mask;          /* mask for low root bits */
     code here;                  /* table entry for duplication */
-    code FAR *next;             /* next available space in table */
-    const unsigned short FAR *base;     /* base value table to use */
-    const unsigned short FAR *extra;    /* extra bits table to use */
+    code *next;                 /* next available space in table */
+    const unsigned short *base; /* base value table to use */
+    const unsigned short *extra;/* extra bits table to use */
     int end;                    /* use base and extra for symbol > end */
     unsigned short count[MAXBITS+1];    /* number of codes of each length */
     unsigned short offs[MAXBITS+1];     /* offsets in table for each length */
@@ -203,7 +202,7 @@ unsigned short FAR *work;
     next = *table;              /* current table to fill in */
     curr = root;                /* current table index bits */
     drop = 0;                   /* current bits to drop from code for index */
-    low = (unsigned)(-1);       /* trigger new sub-table when len > root */
+    low = (unsigned int)(-1);   /* trigger new sub-table when len > root */
     used = 1U << root;          /* use root table entries */
     mask = used - 1;            /* mask for comparing low */
 

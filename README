@@ -1,79 +1,75 @@
-ZLIB DATA COMPRESSION LIBRARY
+LIBZ DATA COMPRESSION LIBRARY
 
-zlib 1.2.8 is a general purpose data compression library.  All the code is
-thread safe.  The data format used by the zlib library is described by RFCs
-(Request for Comments) 1950 to 1952 in the files
-http://tools.ietf.org/html/rfc1950 (zlib format), rfc1951 (deflate format) and
-rfc1952 (gzip format).
+This is Sortix libz. This is not zlib. This is a fork of zlib. It is licensed
+under the zlib license as found in the included <zlib.h>. Don't confuse people
+by calling it `Sortix zlib'. This library comes with no warranty as described in
+the license.
 
-All functions of the compression library are documented in the file zlib.h
-(volunteer to write man pages welcome, contact zlib@gzip.org).  A usage example
-of the library is given in the file test/example.c which also tests that
-the library is working correctly.  Another example is given in the file
-test/minigzip.c.  The compression library itself is composed of all source
-files in the root directory.
+libz is a general purpose data compression library. The data format used by libz
+is described by RFC 1950 (zlib format), RFC 1951 (deflate format), and RFC 1952
+(gzip format).
 
-To compile all files and run the test program, follow the instructions given at
-the top of Makefile.in.  In short "./configure; make test", and if that goes
-well, "make install" should work for most flavors of Unix.  For Windows, use
-one of the special makefiles in win32/ or contrib/vstudio/ .  For VMS, use
-make_vms.com.
+This libz has been cleaned up:
 
-Questions about zlib should be sent to <zlib@gzip.org>, or to Gilles Vollant
-<info@winimage.com> for the Windows DLL version.  The zlib home page is
-http://zlib.net/ .  Before reporting a problem, please check this site to
-verify that you have the latest version of zlib; otherwise get the latest
-version and check whether the problem still exists or not.
+ * Support for anything but modern Unix operating systems has been deleted.
+ * Support for 16-bit segmented platforms has been deleted.
+ * K&R function prototypes and declarations has been upgraded to ISO C ones.
+ * Mysterious work-arounds for broken toolchains and operating systems has been
+   deleted.
+ * Questionable abstractions like local, z_const, Z_NULL and has been replaced
+   with static, const, and NULL.
+ * Unsafe standard library interfaces are no longer used if safe standard
+   library interfaces are missing. The safe ones are used unconditionally.
+ * Needless non-standard types has been replaced with standard ones.
+ * The standard C library is assumed to be present and compliant.
+ * Useless files has been deleted from the source distributions.
+ * (And more)
 
-PLEASE read the zlib FAQ http://zlib.net/zlib_faq.html before asking for help.
+Please note the purpose of this fork is not to replace or discredit zlib. The
+zlib library was written in another age where robust coding practices were not
+as widespread and the common operating systems were often of low quality. The
+zlib library remains truly useful to many severely limited embedded platforms
+and other obscure platforms. As such, by popular demand it works on almost
+everything imaginable. This is fine.
 
-Mark Nelson <markn@ieee.org> wrote an article about zlib for the Jan.  1997
-issue of Dr.  Dobb's Journal; a copy of the article is available at
-http://marknelson.us/1997/01/01/zlib-engine/ .
+The real issue is that it fits in poorly with modern operating systems, where we
+can do better with simpler, clearer and more robust coding practices, where we
+can assume the toolchains actually work and implement standard C. The coding
+style of zlib can be obscure and hard to audit. It doesn't take advantage of
+core standard library responsibilities such as fixed size integers and endian
+detection. It feels odd to compile a modern operating system from scratch and
+find such a poorly-integrated library at the core of the dependency graph.
 
-The changes made in version 1.2.8 are documented in the file ChangeLog.
+This fork cleans up the official zlib to integrate it better with modern C
+environments. Not everyone has one of those and they can't use this fork. That's
+okay: They can use zlib instead. Relevant upstream work will be continuously
+merged, this is no big concern as zlib is largely in maintenance mode. It's
+unlikely that zlib will ever adopt the greater changes in this fork. Individual
+defects found while cleaning and auditing the code should be easily upstreamable
+though.
 
-Unsupported third party contributions are provided in directory contrib/ .
+This libz is API-compatible with zlib and ABI-compatible with zlib on relevant
+and sane platforms. Various junk preprocessor macros were removed from the
+public header, this may break some low quality programs.
 
-zlib is available in Java using the java.util.zip package, documented at
-http://java.sun.com/developer/technicalArticles/Programming/compression/ .
+See the FAQ entry on altered source distributions for the Sortix libz stance and
+the original zlib answer.
 
-A Perl interface to zlib written by Paul Marquess <pmqs@cpan.org> is available
-at CPAN (Comprehensive Perl Archive Network) sites, including
-http://search.cpan.org/~pmqs/IO-Compress-Zlib/ .
+Please check my work. I supply a script that can help you:
 
-A Python interface to zlib written by A.M. Kuchling <amk@amk.ca> is
-available in Python 1.5 and later versions, see
-http://docs.python.org/library/zlib.html .
+    # Ensure diff-against-zlib.sh lists all the files that came from zlib. List
+    # all the new files that are new and check them separately.
+    sh ./diff-against-zlib.sh /path/to/zlib-1.2.8
 
-zlib is built into tcl: http://wiki.tcl.tk/4610 .
+This gives you a diff of my changes to the zlib release I diverged from. My
+original changes were deliberately done so this diff is reasonably readable
+without noise, but it's still big.
 
-An experimental package to read and write files in .zip format, written on top
-of zlib by Gilles Vollant <info@winimage.com>, is available in the
-contrib/minizip directory of zlib.
+I believe zlib-1.2.8.tar.xz to have this sha256sum:
 
+    831df043236df8e9a7667b9e3bb37e1fcb1220a0f163b6de2626774b9590d057  zlib-1.2.8.tar.xz
 
-Notes for some targets:
-
-- For Windows DLL versions, please see win32/DLL_FAQ.txt
-
-- For 64-bit Irix, deflate.c must be compiled without any optimization. With
-  -O, one libpng test fails. The test works in 32 bit mode (with the -n32
-  compiler flag). The compiler bug has been reported to SGI.
-
-- zlib doesn't work with gcc 2.6.3 on a DEC 3000/300LX under OSF/1 2.1 it works
-  when compiled with cc.
-
-- On Digital Unix 4.0D (formely OSF/1) on AlphaServer, the cc option -std1 is
-  necessary to get gzprintf working correctly. This is done by configure.
-
-- zlib doesn't work on HP-UX 9.05 with some versions of /bin/cc. It works with
-  other compilers. Use "make test" to check your compiler.
-
-- gzdopen is not supported on RISCOS or BEOS.
-
-- For PalmOs, see http://palmzlib.sourceforge.net/
-
+---
 
 Acknowledgments:
 

@@ -1,21 +1,18 @@
-.TH ZLIB 3 "28 Apr 2013"
+.TH ZLIB 3 "14 Aug 2014"
 .SH NAME
-zlib \- compression/decompression library
+libz \- compression/decompression library
 .SH SYNOPSIS
 [see
 .I zlib.h
 for full description]
 .SH DESCRIPTION
 The
-.I zlib
+.I libz
 library is a general purpose data compression library.
-The code is thread safe, assuming that the standard library functions
-used are thread safe, such as memory allocation routines.
+The code is thread safe.
 It provides in-memory compression and decompression functions,
 including integrity checks of the uncompressed data.
-This version of the library supports only one compression method (deflation)
-but other algorithms may be added later
-with the same stream interface.
+This version of the library supports only one compression method (deflation).
 .LP
 Compression can be done in a single step if the buffers are large enough
 or can be done by repeated calls of the compression function.
@@ -34,65 +31,14 @@ so the library should never crash even in the case of corrupted input.
 .LP
 All functions of the compression library are documented in the file
 .IR zlib.h .
-The distribution source includes examples of use of the library
-in the files
-.I test/example.c
-and
-.IR test/minigzip.c,
-as well as other examples in the
-.IR examples/
-directory.
-.LP
-Changes to this version are documented in the file
-.I ChangeLog
-that accompanies the source.
-.LP
-.I zlib
-is available in Java using the java.util.zip package:
-.IP
-http://java.sun.com/developer/technicalArticles/Programming/compression/
-.LP
-A Perl interface to
-.IR zlib ,
-written by Paul Marquess (pmqs@cpan.org),
-is available at CPAN (Comprehensive Perl Archive Network) sites,
-including:
-.IP
-http://search.cpan.org/~pmqs/IO-Compress-Zlib/
-.LP
-A Python interface to
-.IR zlib ,
-written by A.M. Kuchling (amk@magnet.com),
-is available in Python 1.5 and later versions:
-.IP
-http://docs.python.org/library/zlib.html
-.LP
-.I zlib
-is built into
-.IR tcl:
-.IP
-http://wiki.tcl.tk/4610
-.LP
-An experimental package to read and write files in .zip format,
-written on top of
-.I zlib
-by Gilles Vollant (info@winimage.com),
-is available at:
-.IP
-http://www.winimage.com/zLibDll/minizip.html
-and also in the
-.I contrib/minizip
-directory of the main
-.I zlib
-source distribution.
 .SH "SEE ALSO"
 The
-.I zlib
+.I Sortix zlib
 web site can be found at:
 .IP
-http://zlib.net/
+https://sortix.org/libz/
 .LP
-The data format used by the zlib library is described by RFC
+The data format used by the libz library is described by RFC
 (Request for Comments) 1950 to 1952 in the files:
 .IP
 http://tools.ietf.org/html/rfc1950 (for the zlib header and trailer format)
@@ -110,22 +56,20 @@ http://marknelson.us/1997/01/01/zlib-engine/
 .SH "REPORTING PROBLEMS"
 Before reporting a problem,
 please check the
-.I zlib
+.I libz
 web site to verify that you have the latest version of
-.IR zlib ;
+.IR libz ;
 otherwise,
 obtain the latest version and see if the problem still exists.
 Please read the
-.I zlib
-FAQ at:
-.IP
-http://zlib.net/zlib_faq.html
-.LP
+FAQ at the website
 before asking for help.
-Send questions and/or comments to zlib@gzip.org,
-or (for the Windows DLL version) to Gilles Vollant (info@winimage.com).
 .SH AUTHORS
-Version 1.2.8
+This is Sortix libz. This is not zlib.
+.LP
+Sortix libz is based on the offical Zlib version 1.2.8 release.
+.LP
+Zlib version 1.2.8
 Copyright (C) 1995-2013 Jean-loup Gailly (jloup@gzip.org)
 and Mark Adler (madler@alumni.caltech.edu).
 .LP
@@ -147,5 +91,6 @@ improvements in
 who are too numerous to cite here.
 .LP
 UNIX manual page by R. P. C. Rodgers,
-U.S. National Library of Medicine (rodgers@nlm.nih.gov).
+U.S. National Library of Medicine (rodgers@nlm.nih.gov);
+subsequently adapted by Sortix libz.
 .\" end of man page

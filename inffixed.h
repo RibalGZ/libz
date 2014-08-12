@@ -1,5 +1,5 @@
     /* inffixed.h -- table for decoding fixed codes
-     * Generated automatically by makefixed().
+     * Generated automatically by ./genfixed.
      */
 
     /* WARNING: this file should *not* be used by applications.

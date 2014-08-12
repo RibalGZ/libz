@@ -7,10 +7,6 @@
 
 #include "zutil.h"
 
-#define local static
-
-local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
-
 #define BASE 65521      /* largest prime smaller than 65536 */
 #define NMAX 5552
 /* NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1 */
@@ -44,7 +40,7 @@ local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
     } while (0)
 #  define MOD63(a) \
     do { /* this assumes a is not negative */ \
-        z_off64_t tmp = a >> 32; \
+        off_t tmp = a >> 32; \
         a &= 0xffffffffL; \
         a += (tmp << 8) - (tmp << 5) + tmp; \
         tmp = a >> 16; \
@@ -62,13 +58,12 @@ local uLong adler32_combine_ OF((uLong adler1, uLong adler2, z_off64_t len2));
 #endif
 
 /* ========================================================================= */
-uLong ZEXPORT adler32(adler, buf, len)
-    uLong adler;
-    const Bytef *buf;
-    uInt len;
+unsigned long ZEXPORT adler32(unsigned long adler,
+                              const unsigned char *buf,
+                              unsigned int len)
 {
     unsigned long sum2;
-    unsigned n;
+    unsigned int n;
 
     /* split Adler-32 into component sums */
     sum2 = (adler >> 16) & 0xffff;
@@ -86,7 +81,7 @@ uLong ZEXPORT adler32(adler, buf, len)
     }
 
     /* initial Adler-32 value (deferred check for len == 1 speed) */
-    if (buf == Z_NULL)
+    if (buf == NULL)
         return 1L;
 
     /* in case short lengths are provided, keep it somewhat fast */
@@ -133,14 +128,13 @@ uLong ZEXPORT adler32(adler, buf, len)
 }
 
 /* ========================================================================= */
-local uLong adler32_combine_(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
-    z_off64_t len2;
+static unsigned long adler32_combine_(unsigned long adler1,
+                                      unsigned long adler2,
+                                      off_t len2)
 {
     unsigned long sum1;
     unsigned long sum2;
-    unsigned rem;
+    unsigned int rem;
 
     /* for negative len, return invalid adler32 as a clue for debugging */
     if (len2 < 0)
@@ -148,7 +142,7 @@ local uLong adler32_combine_(adler1, adler2, len2)
 
     /* the derivation of this formula is left as an exercise for the reader */
     MOD63(len2);                /* assumes len2 >= 0 */
-    rem = (unsigned)len2;
+    rem = (unsigned int)len2;
     sum1 = adler1 & 0xffff;
     sum2 = rem * sum1;
     MOD(sum2);
@@ -162,18 +156,16 @@ local uLong adler32_combine_(adler1, adler2, len2)
 }
 
 /* ========================================================================= */
-uLong ZEXPORT adler32_combine(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
-    z_off_t len2;
+unsigned long ZEXPORT adler32_combine(unsigned long adler1,
+                                      unsigned long adler2,
+                                      z_default_off_t len2)
 {
     return adler32_combine_(adler1, adler2, len2);
 }
 
-uLong ZEXPORT adler32_combine64(adler1, adler2, len2)
-    uLong adler1;
-    uLong adler2;
-    z_off64_t len2;
+unsigned long ZEXPORT adler32_combine64(unsigned long adler1,
+                                        unsigned long adler2,
+                                        off_t len2)
 {
     return adler32_combine_(adler1, adler2, len2);
 }
