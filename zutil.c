@@ -67,9 +67,6 @@ unsigned long ZEXPORT zlibCompileFlags(void)
 #ifdef NO_GZCOMPRESS
     flags += 1L << 16;
 #endif
-#ifdef PKZIP_BUG_WORKAROUND
-    flags += 1L << 20;
-#endif
 #ifdef FASTEST
     flags += 1L << 21;
 #endif

@@ -74,9 +74,7 @@ void ZLIB_INTERNAL inflate_fast(
     unsigned char *out;         /* local strm->next_out */
     unsigned char *beg;         /* inflate()'s initial strm->next_out */
     unsigned char *end;         /* while out < end, enough space available */
-#ifdef INFLATE_STRICT
     unsigned int dmax;          /* maximum distance from zlib header */
-#endif
     unsigned int wsize;         /* window size or zero if not using window */
     unsigned int whave;         /* valid bytes in the window */
     unsigned int wnext;         /* window write index */
@@ -101,9 +99,7 @@ void ZLIB_INTERNAL inflate_fast(
     out = strm->next_out - OFF;
     beg = out - (start - strm->avail_out);
     end = out + (strm->avail_out - 257);
-#ifdef INFLATE_STRICT
     dmax = state->dmax;
-#endif
     wsize = state->wsize;
     whave = state->whave;
     wnext = state->wnext;
@@ -173,13 +169,11 @@ void ZLIB_INTERNAL inflate_fast(
                     }
                 }
                 dist += (unsigned int)hold & ((1U << op) - 1);
-#ifdef INFLATE_STRICT
                 if (dist > dmax) {
                     strm->msg = (char *)"invalid distance too far back";
                     state->mode = BAD;
                     break;
                 }
-#endif
                 hold >>= op;
                 bits -= op;
                 Tracevv((stderr, "inflate:         distance %u\n", dist));
@@ -193,25 +187,6 @@ void ZLIB_INTERNAL inflate_fast(
                             state->mode = BAD;
                             break;
                         }
-#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-                        if (len <= op - whave) {
-                            do {
-                                PUP(out) = 0;
-                            } while (--len);
-                            continue;
-                        }
-                        len -= op - whave;
-                        do {
-                            PUP(out) = 0;
-                        } while (--op > whave);
-                        if (op == 0) {
-                            from = out - dist;
-                            do {
-                                PUP(out) = PUP(from);
-                            } while (--len);
-                            continue;
-                        }
-#endif
                     }
                     from = window - OFF;
                     if (wnext == 0) {           /* very common case */

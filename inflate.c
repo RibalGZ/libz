@@ -760,13 +760,11 @@ int ZEXPORT inflate(z_stream *strm,
             DROPBITS(5);
             state->ncode = BITS(4) + 4;
             DROPBITS(4);
-#ifndef PKZIP_BUG_WORKAROUND
             if (state->nlen > 286 || state->ndist > 30) {
                 strm->msg = (char *)"too many length or distance symbols";
                 state->mode = BAD;
                 break;
             }
-#endif
             Tracev((stderr, "inflate:       table sizes ok\n"));
             state->have = 0;
             state->mode = LENLENS;
@@ -969,13 +967,11 @@ int ZEXPORT inflate(z_stream *strm,
                 DROPBITS(state->extra);
                 state->back += state->extra;
             }
-#ifdef INFLATE_STRICT
             if (state->offset > state->dmax) {
                 strm->msg = (char *)"invalid distance too far back";
                 state->mode = BAD;
                 break;
             }
-#endif
             Tracevv((stderr, "inflate:         distance %u\n", state->offset));
             state->mode = MATCH;
         case MATCH:
@@ -989,19 +985,6 @@ int ZEXPORT inflate(z_stream *strm,
                         state->mode = BAD;
                         break;
                     }
-#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-                    Trace((stderr, "inflate.c too far\n"));
-                    copy -= state->whave;
-                    if (copy > state->length) copy = state->length;
-                    if (copy > left) copy = left;
-                    left -= copy;
-                    state->length -= copy;
-                    do {
-                        *put++ = 0;
-                    } while (--copy);
-                    if (state->length == 0) state->mode = LEN;
-                    break;
-#endif
                 }
                 if (copy > state->wnext) {
                     copy -= state->wnext;
@@ -1332,13 +1315,10 @@ int ZEXPORT inflateUndermine(z_stream *strm,
 
     if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
     state = (struct inflate_state *)strm->state;
-    state->sane = !subvert;
-#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
-    return Z_OK;
-#else
     state->sane = 1;
-    return Z_DATA_ERROR;
-#endif
+    if (subvert)
+        return Z_DATA_ERROR;
+    return Z_OK;
 }
 
 long ZEXPORT inflateMark(z_stream *strm)
