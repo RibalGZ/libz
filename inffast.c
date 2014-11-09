@@ -8,8 +8,6 @@
 #include "inflate.h"
 #include "inffast.h"
 
-#ifndef ASMINF
-
 /* Allow machine dependent optimization for post-increment or pre-increment.
    Based on testing to date,
    Pre-increment preferred for:
@@ -310,5 +308,3 @@ void ZLIB_INTERNAL inflate_fast(
    - Larger unrolled copy loops (three is about right)
    - Moving len -= 3 statement into middle of loop
  */
-
-#endif /* !ASMINF */

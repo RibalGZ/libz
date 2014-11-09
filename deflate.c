@@ -76,21 +76,14 @@ typedef block_state (*compress_func)(deflate_state *s, int flush);
 static void fill_window(deflate_state *s);
 static block_state deflate_stored(deflate_state *s, int flush);
 static block_state deflate_fast(deflate_state *s, int flush);
-#ifndef FASTEST
 static block_state deflate_slow(deflate_state *s, int flush);
-#endif
 static block_state deflate_rle(deflate_state *s, int flush);
 static block_state deflate_huff(deflate_state *s, int flush);
 static void lm_init(deflate_state *s);
 static void putShortMSB(deflate_state *s, unsigned int b);
 static void flush_pending(z_stream *strm);
 static int read_buf(z_stream *strm, unsigned char *buf, unsigned int size);
-#ifdef ASMV
-       void match_init (void); /* asm code initialization */
-       unsigned int longest_match(deflate_state *s, IPos cur_match);
-#else
 static unsigned int longest_match(deflate_state *s, IPos cur_match);
-#endif
 
 #ifdef DEBUG
 static void check_match(deflate_state *s, IPos start, IPos match, int length);
@@ -121,12 +114,6 @@ typedef struct config_s {
    compress_func func;
 } config;
 
-#ifdef FASTEST
-static const config configuration_table[2] = {
-/*      good lazy nice chain */
-/* 0 */ {0,    0,  0,    0, deflate_stored},  /* store only */
-/* 1 */ {4,    4,  8,    4, deflate_fast}}; /* max speed, no lazy matches */
-#else
 static const config configuration_table[10] = {
 /*      good lazy nice chain */
 /* 0 */ {0,    0,  0,    0, deflate_stored},  /* store only */
@@ -140,7 +127,6 @@ static const config configuration_table[10] = {
 /* 7 */ {8,   32, 128, 256, deflate_slow},
 /* 8 */ {32, 128, 258, 1024, deflate_slow},
 /* 9 */ {32, 258, 258, 4096, deflate_slow}}; /* max compression */
-#endif
 
 /* Note: the deflate() code requires max_lazy >= MIN_MATCH and max_chain >= 4
  * For deflate_fast() (levels <= 3) good is ignored and lazy has a different
@@ -163,23 +149,14 @@ static const config configuration_table[10] = {
  * Insert string str in the dictionary and set match_head to the previous head
  * of the hash chain (the most recent string with same hash key). Return
  * the previous length of the hash chain.
- * If this file is compiled with -DFASTEST, the compression level is forced
- * to 1, and no hash chains are maintained.
  * IN  assertion: all calls to to INSERT_STRING are made with consecutive
  *    input characters and the first MIN_MATCH bytes of str are valid
  *    (except for the last MIN_MATCH-1 bytes of the input file).
  */
-#ifdef FASTEST
-#define INSERT_STRING(s, str, match_head) \
-   (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
-    match_head = s->head[s->ins_h], \
-    s->head[s->ins_h] = (Pos)(str))
-#else
 #define INSERT_STRING(s, str, match_head) \
    (UPDATE_HASH(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->prev[(str) & s->w_mask] = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
-#endif
 
 /* ===========================================================================
  * Initialize the hash table (avoiding 64K overflow for 16 bit systems).
@@ -233,11 +210,7 @@ int ZEXPORT deflateInit2_(z_stream *strm,
     if (strm->zfree == (free_func)0)
         strm->zfree = zcfree;
 
-#ifdef FASTEST
-    if (level != 0) level = 1;
-#else
     if (level == Z_DEFAULT_COMPRESSION) level = 6;
-#endif
 
     if (windowBits < 0) { /* suppress zlib wrapper */
         wrap = 0;
@@ -344,9 +317,7 @@ int ZEXPORT deflateSetDictionary(z_stream *strm,
         n = s->lookahead - (MIN_MATCH-1);
         do {
             UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
-#ifndef FASTEST
             s->prev[str & s->w_mask] = s->head[s->ins_h];
-#endif
             s->head[s->ins_h] = (Pos)str;
             str++;
         } while (--n);
@@ -469,11 +440,7 @@ int ZEXPORT deflateParams(z_stream *strm,
     if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
     s = strm->state;
 
-#ifdef FASTEST
-    if (level != 0) level = 1;
-#else
     if (level == Z_DEFAULT_COMPRESSION) level = 6;
-#endif
     if (level < 0 || level > 9 || strategy < 0 || strategy > Z_FIXED) {
         return Z_STREAM_ERROR;
     }
@@ -1066,14 +1033,8 @@ static void lm_init(deflate_state *s)
     s->match_length = s->prev_length = MIN_MATCH-1;
     s->match_available = 0;
     s->ins_h = 0;
-#ifndef FASTEST
-#ifdef ASMV
-    match_init(); /* initialize the asm code */
-#endif
-#endif
 }
 
-#ifndef FASTEST
 /* ===========================================================================
  * Set match_start to the longest match starting at the given string and
  * return its length. Matches shorter or equal to prev_length are discarded,
@@ -1083,7 +1044,7 @@ static void lm_init(deflate_state *s)
  *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
  * OUT assertion: the match length is not greater than s->lookahead.
  */
-#ifndef ASMV
+
 /* For 80x86 and 680x0, an optimized version will be provided in match.asm or
  * match.S. The code will be functionally equivalent.
  */
@@ -1179,65 +1140,6 @@ static unsigned int longest_match(deflate_state *s,
     if ((unsigned int)best_len <= s->lookahead) return (unsigned int)best_len;
     return s->lookahead;
 }
-#endif /* ASMV */
-
-#else /* FASTEST */
-
-/* ---------------------------------------------------------------------------
- * Optimized version for FASTEST only
- */
-static unsigned int longest_match(deflate_state *s, IPos cur_match)
-{
-    unsigned char *scan = s->window + s->strstart; /* current string */
-    unsigned char *match;                          /* matched string */
-    int len;                                       /* length of current match */
-    unsigned char *strend = s->window + s->strstart + MAX_MATCH;
-
-    /* The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
-     * It is easy to get rid of this optimization if necessary.
-     */
-    Assert(s->hash_bits >= 8 && MAX_MATCH == 258, "Code too clever");
-
-    Assert((unsigned long)s->strstart <= s->window_size-MIN_LOOKAHEAD, "need lookahead");
-
-    Assert(cur_match < s->strstart, "no future");
-
-    match = s->window + cur_match;
-
-    /* Return failure if the match length is less than 2:
-     */
-    if (match[0] != scan[0] || match[1] != scan[1]) return MIN_MATCH-1;
-
-    /* The check at best_len-1 can be removed because it will be made
-     * again later. (This heuristic is not always a win.)
-     * It is not necessary to compare scan[2] and match[2] since they
-     * are always equal when the other bytes match, given that
-     * the hash keys are equal and that HASH_BITS >= 8.
-     */
-    scan += 2, match += 2;
-    Assert(*scan == *match, "match[2]?");
-
-    /* We check for insufficient lookahead only every 8th comparison;
-     * the 256th check will be made at strstart+258.
-     */
-    do {
-    } while (*++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             scan < strend);
-
-    Assert(scan <= s->window+(unsigned int)(s->window_size-1), "wild scan");
-
-    len = MAX_MATCH - (int)(strend - scan);
-
-    if (len < MIN_MATCH) return MIN_MATCH - 1;
-
-    s->match_start = cur_match;
-    return (unsigned int)len <= s->lookahead ? (unsigned int)len : s->lookahead;
-}
-
-#endif /* FASTEST */
 
 #ifdef DEBUG
 /* ===========================================================================
@@ -1313,7 +1215,6 @@ static void fill_window(deflate_state *s)
             } while (--n);
 
             n = wsize;
-#ifndef FASTEST
             p = &s->prev[n];
             do {
                 m = *--p;
@@ -1322,7 +1223,6 @@ static void fill_window(deflate_state *s)
                  * its value will never be used.
                  */
             } while (--n);
-#endif
             more += wsize;
         }
         if (s->strm->avail_in == 0) break;
@@ -1353,9 +1253,7 @@ static void fill_window(deflate_state *s)
 #endif
             while (s->insert) {
                 UPDATE_HASH(s, s->ins_h, s->window[str + MIN_MATCH-1]);
-#ifndef FASTEST
                 s->prev[str & s->w_mask] = s->head[s->ins_h];
-#endif
                 s->head[s->ins_h] = (Pos)str;
                 str++;
                 s->insert--;
@@ -1550,7 +1448,6 @@ static block_state deflate_fast(deflate_state *s,
             /* Insert new strings in the hash table only if the match length
              * is not too large. This saves time but degrades compression.
              */
-#ifndef FASTEST
             if (s->match_length <= s->max_insert_length &&
                 s->lookahead >= MIN_MATCH) {
                 s->match_length--; /* string at strstart already in table */
@@ -1562,9 +1459,7 @@ static block_state deflate_fast(deflate_state *s,
                      */
                 } while (--s->match_length != 0);
                 s->strstart++;
-            } else
-#endif
-            {
+            } else {
                 s->strstart += s->match_length;
                 s->match_length = 0;
                 s->ins_h = s->window[s->strstart];
@@ -1595,7 +1490,6 @@ static block_state deflate_fast(deflate_state *s,
     return block_done;
 }
 
-#ifndef FASTEST
 /* ===========================================================================
  * Same as above, but achieves better compression. We use a lazy
  * evaluation for matches: a match is finally adopted only if there is
@@ -1724,7 +1618,6 @@ static block_state deflate_slow(deflate_state *s,
         FLUSH_BLOCK(s, 0);
     return block_done;
 }
-#endif /* FASTEST */
 
 /* ===========================================================================
  * For Z_RLE, simply look for runs of bytes, generate matches only of distance

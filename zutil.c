@@ -58,17 +58,11 @@ unsigned long ZEXPORT zlibCompileFlags(void)
 #ifdef DEBUG
     flags += 1 << 8;
 #endif
-#if defined(ASMV) || defined(ASMINF)
-    flags += 1 << 9;
-#endif
 #ifdef ZLIB_WINAPI
     flags += 1 << 10;
 #endif
 #ifdef NO_GZCOMPRESS
     flags += 1L << 16;
-#endif
-#ifdef FASTEST
-    flags += 1L << 21;
 #endif
     /* The operating system must have modern and secure printf functions. */
     flags += 0L << 24;
