@@ -243,12 +243,10 @@ int ZEXPORT deflateInit2_(z_stream *strm,
         wrap = 0;
         windowBits = -windowBits;
     }
-#ifdef GZIP
     else if (windowBits > 15) {
         wrap = 2;       /* write gzip wrapper instead */
         windowBits -= 16;
     }
-#endif
     if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || method != Z_DEFLATED ||
         windowBits < 8 || windowBits > 15 || level < 0 || level > 9 ||
         strategy < 0 || strategy > Z_FIXED) {
@@ -391,9 +389,7 @@ int ZEXPORT deflateResetKeep(z_stream *strm)
     }
     s->status = s->wrap ? INIT_STATE : BUSY_STATE;
     strm->adler =
-#ifdef GZIP
         s->wrap == 2 ? crc32(0L, NULL, 0) :
-#endif
         adler32(0L, NULL, 0);
     s->last_flush = Z_NO_FLUSH;
 
@@ -657,7 +653,6 @@ int ZEXPORT deflate(z_stream *strm,
 
     /* Write the header */
     if (s->status == INIT_STATE) {
-#ifdef GZIP
         if (s->wrap == 2) {
             strm->adler = crc32(0L, NULL, 0);
             put_byte(s, 31);
@@ -700,10 +695,7 @@ int ZEXPORT deflate(z_stream *strm,
                 s->gzindex = 0;
                 s->status = EXTRA_STATE;
             }
-        }
-        else
-#endif
-        {
+        } else {
             unsigned int header = (Z_DEFLATED + ((s->w_bits-8)<<4)) << 8;
             unsigned int level_flags;
 
@@ -730,7 +722,6 @@ int ZEXPORT deflate(z_stream *strm,
             strm->adler = adler32(0L, NULL, 0);
         }
     }
-#ifdef GZIP
     if (s->status == EXTRA_STATE) {
         if (s->gzhead->extra != NULL) {
             unsigned int beg = s->pending;  /* start of bytes to update crc */
@@ -833,7 +824,6 @@ int ZEXPORT deflate(z_stream *strm,
         else
             s->status = BUSY_STATE;
     }
-#endif
 
     /* Flush as much pending output as possible */
     if (s->pending != 0) {
@@ -919,7 +909,6 @@ int ZEXPORT deflate(z_stream *strm,
     if (s->wrap <= 0) return Z_STREAM_END;
 
     /* Write the trailer */
-#ifdef GZIP
     if (s->wrap == 2) {
         put_byte(s, (unsigned char)(strm->adler & 0xff));
         put_byte(s, (unsigned char)((strm->adler >> 8) & 0xff));
@@ -929,10 +918,7 @@ int ZEXPORT deflate(z_stream *strm,
         put_byte(s, (unsigned char)((strm->total_in >> 8) & 0xff));
         put_byte(s, (unsigned char)((strm->total_in >> 16) & 0xff));
         put_byte(s, (unsigned char)((strm->total_in >> 24) & 0xff));
-    }
-    else
-#endif
-    {
+    } else {
         putShortMSB(s, (unsigned int)(strm->adler >> 16));
         putShortMSB(s, (unsigned int)(strm->adler & 0xffff));
     }
@@ -1048,12 +1034,9 @@ static int read_buf(z_stream *strm,
     memcpy(buf, strm->next_in, len);
     if (strm->state->wrap == 1) {
         strm->adler = adler32(strm->adler, buf, len);
-    }
-#ifdef GZIP
-    else if (strm->state->wrap == 2) {
+    } else if (strm->state->wrap == 2) {
         strm->adler = crc32(strm->adler, buf, len);
     }
-#endif
     strm->next_in  += len;
     strm->total_in += len;
 

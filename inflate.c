@@ -145,10 +145,8 @@ int ZEXPORT inflateReset2(z_stream *strm,
     }
     else {
         wrap = (windowBits >> 4) + 1;
-#ifdef GUNZIP
         if (windowBits < 48)
             windowBits &= 15;
-#endif
     }
 
     /* set number of window bits, free window if different */
@@ -304,23 +302,18 @@ static int updatewindow(z_stream *strm,
 /* Macros for inflate(): */
 
 /* check function to use adler32() for zlib or crc32() for gzip */
-#ifdef GUNZIP
-#  define UPDATE(check, buf, len) \
+#define UPDATE(check, buf, len) \
     (state->flags ? crc32(check, buf, len) : adler32(check, buf, len))
-#else
-#  define UPDATE(check, buf, len) adler32(check, buf, len)
-#endif
 
 /* check macros for header crc */
-#ifdef GUNZIP
-#  define CRC2(check, word) \
+#define CRC2(check, word) \
     do { \
         hbuf[0] = (unsigned char)(word); \
         hbuf[1] = (unsigned char)((word) >> 8); \
         check = crc32(check, hbuf, 2); \
     } while (0)
 
-#  define CRC4(check, word) \
+#define CRC4(check, word) \
     do { \
         hbuf[0] = (unsigned char)(word); \
         hbuf[1] = (unsigned char)((word) >> 8); \
@@ -328,7 +321,6 @@ static int updatewindow(z_stream *strm,
         hbuf[3] = (unsigned char)((word) >> 24); \
         check = crc32(check, hbuf, 4); \
     } while (0)
-#endif
 
 /* Load registers with state in inflate() for speed */
 #define LOAD() \
@@ -493,9 +485,7 @@ int ZEXPORT inflate(z_stream *strm,
     code last;                  /* parent table entry */
     unsigned int len;           /* length to copy for repeats, bits to drop */
     int ret;                    /* return code */
-#ifdef GUNZIP
     unsigned char hbuf[4];      /* buffer for gzip header crc calculation */
-#endif
     static const unsigned short order[19] = /* permutation of code lengths */
         {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
 
@@ -517,7 +507,6 @@ int ZEXPORT inflate(z_stream *strm,
                 break;
             }
             NEEDBITS(16);
-#ifdef GUNZIP
             if ((state->wrap & 2) && hold == 0x8b1f) {  /* gzip header */
                 state->check = crc32(0L, NULL, 0);
                 CRC2(state->check, hold);
@@ -529,9 +518,6 @@ int ZEXPORT inflate(z_stream *strm,
             if (state->head != NULL)
                 state->head->done = -1;
             if (!(state->wrap & 1) ||   /* check if zlib header allowed */
-#else
-            if (
-#endif
                 ((BITS(8) << 8) + (hold >> 8)) % 31) {
                 strm->msg = (char *)"incorrect header check";
                 state->mode = BAD;
@@ -557,7 +543,6 @@ int ZEXPORT inflate(z_stream *strm,
             state->mode = hold & 0x200 ? DICTID : TYPE;
             INITBITS();
             break;
-#ifdef GUNZIP
         case FLAGS:
             NEEDBITS(16);
             state->flags = (int)(hold);
@@ -684,7 +669,6 @@ int ZEXPORT inflate(z_stream *strm,
             strm->adler = state->check = crc32(0L, NULL, 0);
             state->mode = TYPE;
             break;
-#endif
         case DICTID:
             NEEDBITS(32);
             strm->adler = state->check = ZSWAP32(hold);
@@ -1055,11 +1039,7 @@ int ZEXPORT inflate(z_stream *strm,
                     strm->adler = state->check =
                         UPDATE(state->check, put - out, out);
                 out = left;
-                if ((
-#ifdef GUNZIP
-                     state->flags ? hold :
-#endif
-                     ZSWAP32(hold)) != state->check) {
+                if ((state->flags ? hold : ZSWAP32(hold)) != state->check) {
                     strm->msg = (char *)"incorrect data check";
                     state->mode = BAD;
                     break;
@@ -1067,7 +1047,6 @@ int ZEXPORT inflate(z_stream *strm,
                 INITBITS();
                 Tracev((stderr, "inflate:   check matches trailer\n"));
             }
-#ifdef GUNZIP
             state->mode = LENGTH;
         case LENGTH:
             if (state->wrap && state->flags) {
@@ -1080,7 +1059,6 @@ int ZEXPORT inflate(z_stream *strm,
                 INITBITS();
                 Tracev((stderr, "inflate:   length matches trailer\n"));
             }
-#endif
             state->mode = DONE;
         case DONE:
             ret = Z_STREAM_END;
