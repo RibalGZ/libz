@@ -24,10 +24,6 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 
 #define ERR_MSG(err) z_errmsg[Z_NEED_DICT-(err)]
 
-#define ERR_RETURN(strm,err) \
-  return (strm->msg = ERR_MSG(err), (err))
-/* To be used only when the state is known to be valid */
-
         /* common constants */
 
 #ifndef DEF_WBITS
