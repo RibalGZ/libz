@@ -5,6 +5,12 @@
 
 /* @(#) $Id$ */
 
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "zutil.h"
 #include "gzguts.h"
 
@@ -89,14 +95,53 @@ const char * ZEXPORT zError(int err)
     return ERR_MSG(err);
 }
 
+/* This function is only for outward appearances in case an application looks
+   too closely at strm->zalloc. The internal allocator (z_stream_alloc) notices
+   if this one is used and uses the system allocator instead. */
 void* ZLIB_INTERNAL zcalloc(void *opaque, unsigned int items, unsigned int size)
 {
     (void) opaque;
     return calloc((size_t) items, (size_t) size);
 }
 
+/* This function is only for outward appearances in case an application looks
+   too closely at strm->zfree. The internal deallocator (z_stream_free) notices
+   if this one is used and uses the system deallocator instead. */
 void ZLIB_INTERNAL zcfree(void *opaque, void *ptr)
 {
     (void) opaque;
     free(ptr);
+}
+
+void* ZLIB_INTERNAL z_stream_alloc(z_stream *strm, size_t size)
+{
+    if (strm->zalloc == (alloc_func)0 || strm->zalloc == zcalloc)
+        return malloc(size);
+#if UINT_MAX < SIZE_MAX
+    /* Don't trust the application's allocation function that has unsigned int
+       parameters to handle multiplication-check-and-promotion-to-size_t
+       properly. */
+    if (UINT_MAX < size)
+        return NULL;
+#endif
+    return strm->zalloc(strm->opaque, (unsigned int) size, 1);
+}
+
+void* ZLIB_INTERNAL z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size)
+{
+    if (size && nmemb && SIZE_MAX / size < nmemb)
+        return errno = ENOMEM, (void*) NULL;
+    return z_stream_alloc(strm, nmemb * size);
+}
+
+void ZLIB_INTERNAL z_stream_free(z_stream *strm, void* ptr)
+{
+    if (strm->zfree == (free_func)0 || strm->zfree == zcfree) {
+        free(ptr);
+        return;
+    }
+    /* Don't trust the application to do null-checks in the deallocator. */
+    if (!ptr)
+        return;
+    strm->zfree(strm->opaque, ptr);
 }

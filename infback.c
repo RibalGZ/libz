@@ -40,14 +40,13 @@ int ZEXPORT inflateBackInit_(z_stream *strm,
         windowBits < 8 || windowBits > 15)
         return Z_STREAM_ERROR;
     strm->msg = NULL;                 /* in case we return an error */
-    if (strm->zalloc == (alloc_func)0) {
+    if (strm->zalloc == (alloc_func)0 || strm->zfree == (free_func)0) {
         strm->zalloc = zcalloc;
+        strm->zfree = zcfree;
         strm->opaque = NULL;
     }
-    if (strm->zfree == (free_func)0)
-        strm->zfree = zcfree;
-    state = (struct inflate_state *)ZALLOC(strm, 1,
-                                           sizeof(struct inflate_state));
+    state = (struct inflate_state *)
+        z_stream_alloc(strm,  sizeof(struct inflate_state));
     if (state == NULL) return Z_MEM_ERROR;
     Tracev((stderr, "inflate: allocated\n"));
     strm->state = (struct internal_state *)state;
@@ -580,7 +579,7 @@ int ZEXPORT inflateBackEnd(z_stream *strm)
 {
     if (strm == NULL || strm->state == NULL || strm->zfree == (free_func)0)
         return Z_STREAM_ERROR;
-    ZFREE(strm, strm->state);
+    z_stream_free(strm, strm->state);
     strm->state = NULL;
     Tracev((stderr, "inflate: end\n"));
     return Z_OK;

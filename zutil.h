@@ -17,8 +17,9 @@
 
 #include <zlib.h>
 
-#include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 
@@ -76,10 +77,9 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 void* ZLIB_INTERNAL zcalloc(void* opaque, unsigned int items, unsigned int size);
 void ZLIB_INTERNAL zcfree(void* opaque, void* ptr);
 
-#define ZALLOC(strm, items, size) \
-           (*((strm)->zalloc))((strm)->opaque, (items), (size))
-#define ZFREE(strm, addr)  (*((strm)->zfree))((strm)->opaque, (addr))
-#define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
+void* ZLIB_INTERNAL z_stream_alloc(z_stream *strm, size_t size);
+void* ZLIB_INTERNAL z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size);
+void ZLIB_INTERNAL z_stream_free(z_stream *strm, void* ptr);
 
 /* Reverse the bytes in a 32-bit value */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
