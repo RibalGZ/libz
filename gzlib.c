@@ -59,14 +59,12 @@ static gzFile gz_open(const char *path,
             case 'r':
                 state->mode = GZ_READ;
                 break;
-#ifndef NO_GZCOMPRESS
             case 'w':
                 state->mode = GZ_WRITE;
                 break;
             case 'a':
                 state->mode = GZ_APPEND;
                 break;
-#endif
             case '+':       /* can't read and write at the same time */
                 free(state);
                 return NULL;

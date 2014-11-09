@@ -61,9 +61,6 @@ unsigned long ZEXPORT zlibCompileFlags(void)
 #ifdef ZLIB_WINAPI
     flags += 1 << 10;
 #endif
-#ifdef NO_GZCOMPRESS
-    flags += 1L << 16;
-#endif
     /* The operating system must have modern and secure printf functions. */
     flags += 0L << 24;
     flags += 0L << 25;

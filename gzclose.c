@@ -10,7 +10,6 @@
    unneeded compression or decompression routines. */
 int ZEXPORT gzclose(gzFile file)
 {
-#ifndef NO_GZCOMPRESS
     gz_state *state;
 
     if (file == NULL)
@@ -18,7 +17,4 @@ int ZEXPORT gzclose(gzFile file)
     state = (gz_state *)file;
 
     return state->mode == GZ_READ ? gzclose_r(file) : gzclose_w(file);
-#else
-    return gzclose_r(file);
-#endif
 }
