@@ -65,11 +65,28 @@ int ZEXPORT inflateBackInit_(z_stream *strm,
  */
 static void fixedtables(struct inflate_state *state)
 {
-#include "inffixed.h"
-    state->lencode = lenfix;
-    state->lenbits = 9;
-    state->distcode = distfix;
-    state->distbits = 5;
+    code *next = state->codes;
+
+    unsigned sym, bits;
+
+    sym=0;
+    while (sym < 144) state->lens[sym++] = 8;
+    while (sym < 256) state->lens[sym++] = 9;
+    while (sym < 280) state->lens[sym++] = 7;
+    while (sym < 288) state->lens[sym++] = 8;
+    bits = 9;
+
+    inflate_table(LENS, state->lens, 288, &next, &bits, state->work);
+    state->lencode = next;
+    state->lenbits = bits;
+
+    sym=0;
+    while (sym < 32) state->lens[sym++] = 5;
+    bits = 5;
+
+    inflate_table(DISTS, state->lens, 32, &next, &bits, state->work);
+    state->distcode = next;
+    state->distbits = bits;
 }
 
 /* Macros for inflateBack(): */
