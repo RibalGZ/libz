@@ -302,53 +302,33 @@ int ZEXPORT gzputs(gzFile file,
 #include <stdarg.h>
 
 /* -- see zlib.h -- */
-/* TODO: This function deserves an audit. */
 int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va)
 {
-    int size, len;
-    gz_state *state;
-    z_stream *strm;
+    int len, ret;
 
-    /* get internal structure */
-    if (file == NULL)
-        return -1;
-    state = (gz_state *)file;
-    strm = &state->strm;
+    char buf[4096];
+    char *str = buf;
 
-    /* check that we're writing and that there's no error */
-    if (state->mode != GZ_WRITE || state->err != Z_OK)
-        return 0;
+    va_list va2;
+    va_copy(va2, va);
 
-    /* make sure we have some buffer space */
-    if (state->size == 0 && gz_init(state) == -1)
-        return 0;
-
-    /* check for seek request */
-    if (state->seek) {
-        state->seek = 0;
-        if (gz_zero(state, state->skip) == -1)
-            return 0;
+    len = vsnprintf(buf, sizeof buf, format, va2);
+    va_end(va2);
+    if(len < 0) return len;
+    if((unsigned)len > sizeof buf) {
+        str = malloc(len + 1);
+        if(str == NULL)
+            return -1;
+        len = vsnprintf(str, len + 1, format, va);
     }
 
-    /* consume whatever's left in the input buffer */
-    if (strm->avail_in && gz_comp(state, Z_NO_FLUSH) == -1)
-        return 0;
-
-    /* do the printf() into the input buffer, put length in len */
-    size = (int)(state->size);
-    state->in[size - 1] = 0;
-    /* TODO: Potential truncation! */
-    len = vsnprintf((char *)(state->in), size, format, va);
-
-    /* check that printf() results fit in buffer */
-    if (len <= 0 || len >= (int)size || state->in[size - 1] != 0)
-        return 0;
-
-    /* update buffer and position, defer compression until needed */
-    strm->avail_in = (unsigned int)len;
-    strm->next_in = state->in;
-    state->x.pos += len;
-    return len;
+    if(len <= 0) return len;
+    ret = gzwrite(file, str, len);
+    if(ret == 0 && len != 0)
+        ret = -1;
+    if(str != buf)
+        free(str);
+    return ret;
 }
 
 int ZEXPORTVA gzprintf(gzFile file, const char *format, ...)
