@@ -50,6 +50,7 @@
   * Remove NO_DEFLATE and NO_GZCOMPRESS configurations.
   * Remove SYS16BIT configuration.
   * Remove UNALIGNED_OK configuration.
+  * Remove NO_DIVIDE configuration.
   * Remove ZLIB_WINAPI configuration.
   * Remove Z_PREFIX configuration.
   * Remove Z_SOLO configuration.
@@ -72,3 +73,4 @@
   * Move code that generates C headers out of the core files and into utilities.
   * Assume attribute visibility hidden is available.
   * Improved large file support compatibility.
+  * Simplify adler32 code.
