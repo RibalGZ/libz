@@ -55,14 +55,8 @@ static int gz_avail(gz_state *state)
     if (state->err != Z_OK && state->err != Z_BUF_ERROR)
         return -1;
     if (state->eof == 0) {
-        if (strm->avail_in) {       /* copy what's there to the start */
-            unsigned char *p = state->in;
-            const unsigned char *q = strm->next_in;
-            unsigned int n = strm->avail_in;
-            do {
-                *p++ = *q++;
-            } while (--n);
-        }
+        if (strm->avail_in) /* copy what's there to the start */
+            memmove(state->in, strm->next_in, strm->avail_in);
         if (gz_load(state, state->in + strm->avail_in,
                     state->size - strm->avail_in, &got) == -1)
             return -1;
