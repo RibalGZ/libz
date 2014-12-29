@@ -1332,3 +1332,11 @@ long ZEXPORT inflateMark(z_stream *strm)
         (state->mode == COPY ? state->length :
             (state->mode == MATCH ? state->was - state->length : 0));
 }
+
+unsigned long ZEXPORT inflateCodesUsed(z_stream *strm)
+{
+    struct inflate_state *state;
+    if (strm == NULL || strm->state == NULL) return ULONG_MAX;
+    state = (struct inflate_state *)strm->state;
+    return (unsigned long)(state->next - state->codes);
+}
