@@ -77,7 +77,28 @@ unsigned long ZEXPORT zlibCompileFlags(void)
  */
 const char * ZEXPORT zError(int err)
 {
-    return ERR_MSG(err);
+    switch(err) {
+        case Z_NEED_DICT:
+            return "need dictionary";
+        case Z_STREAM_END:
+            return "stream end";
+        case Z_OK:
+            return "";
+       case Z_ERRNO:
+            return "file error";
+        case Z_STREAM_ERROR:
+            return "stream error";
+       case Z_DATA_ERROR:
+            return "data error";
+        case Z_MEM_ERROR:
+            return "insufficient memory";
+        case Z_BUF_ERROR:
+            return "buffer error";
+        case Z_VERSION_ERROR:
+            return "incompatible version";
+        default:
+            return "unknown error";
+    }
 }
 
 /* This function is only for outward appearances in case an application looks

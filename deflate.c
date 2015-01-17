@@ -257,7 +257,7 @@ int ZEXPORT deflateInit2_(z_stream *strm,
     if (s->window == NULL || s->prev == NULL || s->head == NULL ||
         s->pending_buf == NULL) {
         s->status = FINISH_STATE;
-        strm->msg = ERR_MSG(Z_MEM_ERROR);
+        strm->msg = zError(Z_MEM_ERROR);
         deflateEnd (strm);
         return Z_MEM_ERROR;
     }
@@ -623,9 +623,9 @@ int ZEXPORT deflate(z_stream *strm,
     if (strm->next_out == NULL ||
         (strm->avail_in != 0 && strm->next_in == NULL) ||
         (s->status == FINISH_STATE && flush != Z_FINISH))
-        return strm->msg = ERR_MSG(Z_STREAM_ERROR), Z_STREAM_ERROR;
+        return strm->msg = zError(Z_STREAM_ERROR), Z_STREAM_ERROR;
     if (strm->avail_out == 0)
-        return strm->msg = ERR_MSG(Z_BUF_ERROR), Z_BUF_ERROR;
+        return strm->msg = zError(Z_BUF_ERROR), Z_BUF_ERROR;
 
     s->strm = strm; /* just in case */
     old_flush = s->last_flush;
@@ -825,11 +825,11 @@ int ZEXPORT deflate(z_stream *strm,
      */
     } else if (strm->avail_in == 0 && RANK(flush) <= RANK(old_flush) &&
                flush != Z_FINISH)
-        return strm->msg = ERR_MSG(Z_BUF_ERROR), Z_BUF_ERROR;
+        return strm->msg = zError(Z_BUF_ERROR), Z_BUF_ERROR;
 
     /* User must not provide more input after the first FINISH: */
     if (s->status == FINISH_STATE && strm->avail_in != 0)
-        return strm->msg = ERR_MSG(Z_BUF_ERROR), Z_BUF_ERROR;
+        return strm->msg = zError(Z_BUF_ERROR), Z_BUF_ERROR;
 
     /* Start a new block or continue the current one.
      */

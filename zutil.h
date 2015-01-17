@@ -21,10 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
-
-#define ERR_MSG(err) z_errmsg[Z_NEED_DICT-(err)]
-
         /* common constants */
 
 #ifndef DEF_WBITS
