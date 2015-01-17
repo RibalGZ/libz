@@ -72,21 +72,6 @@ unsigned long ZEXPORT zlibCompileFlags(void)
     return flags;
 }
 
-#ifdef ZLIB_DEBUG
-
-#  ifndef verbose
-#    define verbose 0
-#  endif
-int ZLIB_INTERNAL z_verbose = verbose;
-
-/* TODO. This should be a const char *. */
-void ZLIB_INTERNAL z_error(char *m)
-{
-    fprintf(stderr, "%s\n", m);
-    exit(1);
-}
-#endif
-
 /* exported to allow conversion of error code to string for compress() and
  * uncompress()
  */

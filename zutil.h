@@ -54,26 +54,6 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 
 #define OS_CODE  0x03  /* assume Unix */
 
-/* Diagnostic functions */
-#ifdef ZLIB_DEBUG
-#  include <stdio.h>
-   extern ZLIB_INTERNAL int z_verbose;
-   extern ZLIB_INTERNAL void z_error(char *m);
-#  define Assert(cond,msg) {if(!(cond)) z_error(msg);}
-#  define Trace(x) {if (z_verbose>=0) fprintf x ;}
-#  define Tracev(x) {if (z_verbose>0) fprintf x ;}
-#  define Tracevv(x) {if (z_verbose>1) fprintf x ;}
-#  define Tracec(c,x) {if (z_verbose>0 && (c)) fprintf x ;}
-#  define Tracecv(c,x) {if (z_verbose>1 && (c)) fprintf x ;}
-#else
-#  define Assert(cond,msg)
-#  define Trace(x)
-#  define Tracev(x)
-#  define Tracevv(x)
-#  define Tracec(c,x)
-#  define Tracecv(c,x)
-#endif
-
 ZLIB_INTERNAL void *zcalloc(void *opaque, unsigned int items, unsigned int size);
 ZLIB_INTERNAL void zcfree(void *opaque, void *ptr);
 

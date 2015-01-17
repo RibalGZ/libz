@@ -106,9 +106,6 @@ void ZLIB_INTERNAL inflate_fast(
         bits -= op;
         op = (unsigned int)(here.op);
         if (op == 0) {                          /* literal */
-            Tracevv((stderr, here.val >= 0x20 && here.val < 0x7f ?
-                    "inflate:         literal '%c'\n" :
-                    "inflate:         literal 0x%02x\n", here.val));
             *out++ = (unsigned char)(here.val);
         }
         else if (op & 16) {                     /* length base */
@@ -123,7 +120,6 @@ void ZLIB_INTERNAL inflate_fast(
                 hold >>= op;
                 bits -= op;
             }
-            Tracevv((stderr, "inflate:         length %u\n", len));
             if (bits < 15) {
                 hold += (unsigned long)(*in++) << bits;
                 bits += 8;
@@ -155,7 +151,6 @@ void ZLIB_INTERNAL inflate_fast(
                 }
                 hold >>= op;
                 bits -= op;
-                Tracevv((stderr, "inflate:         distance %u\n", dist));
                 op = (unsigned int)(out - beg); /* max distance in output */
                 if (dist > op) {                /* see if copy from window */
                     op = dist - op;             /* distance back in window */
@@ -249,7 +244,6 @@ void ZLIB_INTERNAL inflate_fast(
             goto dolen;
         }
         else if (op & 32) {                     /* end-of-block */
-            Tracevv((stderr, "inflate:         end of block\n"));
             state->mode = TYPE;
             break;
         }
