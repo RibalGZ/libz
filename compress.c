@@ -30,6 +30,7 @@ int ZEXPORT compress2(unsigned char *dest,
 
     stream.next_in = (const unsigned char *)source;
     stream.avail_in = (unsigned int)sourceLen;
+    if ((unsigned long)stream.avail_in != sourceLen) return Z_BUF_ERROR;
     stream.next_out = dest;
     stream.avail_out = (unsigned int)*destLen;
     if ((unsigned long)stream.avail_out != *destLen) return Z_BUF_ERROR;
