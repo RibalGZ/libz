@@ -13,16 +13,16 @@ This libz has been cleaned up:
 
  * Support for anything but modern Unix operating systems has been deleted.
  * Support for 16-bit segmented platforms has been deleted.
- * K&R function prototypes and declarations has been upgraded to ISO C ones.
- * Mysterious work-arounds for broken toolchains and operating systems has been
+ * K&R function prototypes and declarations have been upgraded to ISO C ones.
+ * Mysterious work-arounds for broken toolchains and operating systems have been
    deleted.
- * Questionable abstractions like local, z_const, Z_NULL and has been replaced
+ * Questionable abstractions like local, z_const, and Z_NULL have been replaced
    with static, const, and NULL.
  * Unsafe standard library interfaces are no longer used if safe standard
    library interfaces are missing. The safe ones are used unconditionally.
- * Needless non-standard types has been replaced with standard ones.
+ * Needless non-standard types have been replaced with standard ones.
  * The standard C library is assumed to be present and compliant.
- * Useless files has been deleted from the source distributions.
+ * Useless files have been deleted from the source distributions.
  * (And more)
 
 Please note the purpose of this fork is not to replace or discredit zlib. The
