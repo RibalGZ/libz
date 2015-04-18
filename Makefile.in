@@ -82,7 +82,7 @@ libz.so: libz.so.$(VERSION) libz.so.1
 	ln -fs libz.so.$(VERSION) $@
 
 libz.$(VERSION).dylib: $(SHARED_OBJS)
-	$(CC) -dynamiclib -install_name $(LIBDIR)/libz.1.dylib -compatibility_version 1 -current_version 1.2.8 $(Z_CFLAGS) $(SHARED_OBJS) -o $@
+	$(CC) -dynamiclib -install_name $(LIBDIR)/libz.1.dylib -compatibility_version 1 -current_version $(VERSION) $(Z_CFLAGS) $(SHARED_OBJS) -o $@
 
 libz.1.dylib: libz.$(VERSION).dylib
 	ln -fs libz.$(VERSION).dylib $@
