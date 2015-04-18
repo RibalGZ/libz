@@ -31,7 +31,6 @@ int ZEXPORT uncompress(unsigned char *dest,
 
     stream.next_in = (const unsigned char *)source;
     stream.avail_in = (unsigned int)sourceLen;
-    /* Check for source > 64K on 16-bit machine: */
     if ((unsigned long)stream.avail_in != sourceLen) return Z_BUF_ERROR;
 
     stream.next_out = dest;
