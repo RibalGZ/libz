@@ -12,7 +12,6 @@ TODO:
 * `FILE-OF-HORRORS'? `HORROR'? Put fun stuff there.
 * Examine and address all the todo statements in the code.
 * Closely audit the code semantically.
-* Read the zlib website closely.
 * Are the strerror() calls unsafe on some operating systems?
 * gzputs doesn't work for strings longer than UINT_MAX!
 * Fun gzvprintf truncation issues. I can fix that.
@@ -21,9 +20,6 @@ TODO:
 * What's up with the inftrees.c expression `(unsigned int)(-1)'?
 * Where do the trailing braces in tr_static_init's output come from?
 * Bounds checks in zError.
-* Perhaps add Sortix libz version numbers as syncing with the zlib
-  version scheme doesn't really allow us to make patch release.
-* Can we get rid of <zconf.h>? Does code in the wild even use this header?
 * Get rid of the Tracev() macro.
 * windowBits bit manipulation is low quality.
 * Use function pointers in gzclose to optimize static linking.
@@ -39,3 +35,4 @@ TODO:
 Upstream-ideas:
 * What's with the awful original line `if ((int)len < 0) {' from
   the gzread.c file? That's bad.
+* Truncation checks in compress2 and uncompress.
