@@ -154,7 +154,7 @@ for var in configuration_variables; do
   unset var
 done
 
-cross_compiling=no
+cross_compiling=maybe
 enable_static=maybe
 enable_shared=maybe
 
@@ -330,11 +330,11 @@ test -n "$build" && build_tool_prefix=$build- || build_tool_prefix=
 [ -z ${mandir+x} ] && mandir="$datarootdir/man"
 
 printf "checking whether we are cross-compiling... "
-if [ "$cross_compiling" = maybe ]; then
+if [ "$cross_compiling" = maybe ] && [ -n "$host" ]; then
   if [ "x$build" = "x$host" ]; then
-    cross_compiling=yes
-  else
     cross_compiling=no
+  else
+    cross_compiling=yes
   fi
 fi
 if [ "$cross_compiling" = yes ]; then
