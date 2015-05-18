@@ -115,6 +115,8 @@ void ZLIB_INTERNAL zcfree(void *opaque, void *ptr)
 
 void* ZLIB_INTERNAL z_stream_alloc(z_stream *strm, size_t size)
 {
+    if (size == 0)
+        size = 1;
     if (strm->zalloc == (alloc_func)0 || strm->zalloc == zcalloc)
         return malloc(size);
 #if UINT_MAX < SIZE_MAX
