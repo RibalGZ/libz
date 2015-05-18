@@ -9,3 +9,4 @@ genfixed
 gentrees
 config.status
 Makefile
+endian.h

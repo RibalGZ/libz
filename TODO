@@ -26,7 +26,6 @@ TODO:
 * What's with inflateMark doing `return -1L << 16;'?
 * The windowBits code in inflateReset2 is needlessly hard to read.
 * Probably delete the version checks, we're not going to break the ABI.
-* endian.h is a problem, either use machine/endian.h on OS X or pikhq's CRC.
 * Perhaps restore gzflags that was removed in 1.2.7 for ABI compatibility.
 * I'd like to see a proof that compressBound is correct.
 * Do we need to modify deflate_copyright?

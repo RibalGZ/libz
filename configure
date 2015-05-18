@@ -684,6 +684,46 @@ fi
 rm -f conftest.c
 
 #
+# Detect endian detection or fallbacks.
+#
+
+rm -f endian.h
+cat > conftest.c << EOF
+#ifdef TRY_ENDIAN_H
+#include <endian.h>
+#endif
+#ifdef TRY_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
+#ifdef TRY_MACHINE_ENDIAN_H
+#include <machine/endian.h>
+#endif
+#if !defined(BYTE_ORDER)
+#error "not satisfied"
+#endif
+EOF
+
+if check c_compile "for endian.h on host" \
+         "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  :
+elif check c_compile "for sys/endian.h on host" \
+           "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_SYS_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  echo "#include <sys/endian.h>" > endian.h
+elif check c_compile "for machine/endian.h on host" \
+           "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_MACHINE_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  echo "#include <machine/endian.h>" > endian.h
+else
+  cat > endian.h << EOF
+#ifndef ENDIAN_H
+#define ENDIAN_H
+#define BYTE_ORDER 0000
+#define LITTLE_ENDIAN 1234
+#define BIG_ENDIAN 4321
+#endif
+EOF
+fi
+
+#
 # Detect the kind of shared libaries.
 #
 
