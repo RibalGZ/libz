@@ -352,28 +352,34 @@ test -n "$build" && build_tool_prefix=$build- || build_tool_prefix=
 [ -z ${localedir+x} ] && localedir="$datarootdir/locale"
 [ -z ${mandir+x} ] && mandir="$datarootdir/man"
 
-printf "checking whether we are cross-compiling... "
+check_begin() {
+  printf "checking %s... " "$1"
+}
+
+check_end() {
+  printf "%s\n" $1
+}
+
+check_begin "whether we are cross-compiling"
 if [ "$cross_compiling" = maybe ] && [ -n "$host" ]; then
   if [ "x$build" = "x$host" ]; then
     cross_compiling=no
   else
     cross_compiling=yes
   fi
+elif [ "$cross_compiling" = maybe ]; then
+  cross_compiling=no
 fi
+check_end "$cross_compiling"
 if [ "$cross_compiling" = yes ]; then
   cross_compiling=true
 else
   cross_compiling=false
 fi
-if ! $cross_compiling; then
-  echo no
-else
-  echo yes
-fi
 
 search_tool() {
   eval unset $2
-  printf "checking for %s... " "$1"
+  check_begin "for $1"
   candidates=
   if [ -n "$4" ]; then
     for candidate in $5; do
@@ -398,19 +404,19 @@ search_tool() {
        fi
        rm -f conftest.a conftest.o
      fi
-     echo "$candidate"
+     check_end "$candidate"
      candidates_found=true
      eval $2="$candidate"
      break
   done
   if ! $candidates_found; then
-    echo "not found"
+    check_end "not found"
   fi
 }
 
 search_tool_found() {
-  printf "checking for %s... " "$1"
-  echo $2
+  check_begin "for $1"
+  check_end "$2"
 }
 
 c_compile() {
@@ -451,14 +457,6 @@ c_compile_link_dylib() {
     rm -f conftest.dylib
     true
   fi
-}
-
-check_begin() {
-  printf "checking %s... " "$1"
-}
-
-check_end() {
-  printf "%s\n" $1
 }
 
 check() {
@@ -610,44 +608,48 @@ cat > conftest.c << EOF
 int notemptyfile;
 EOF
 
-if check c_compile "whether C11 is default on host" \
-         "$CC" "$CFLAGS" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
-  : # No option is needed.
-elif check c_compile "whether -std=c11 enables C11 on host" \
-           "$CC" "$CFLAGS -std=c11" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
+check_begin "how to enable C11 on host"
+if c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
+  check_end "enabled by default"
+elif c_compile "$CC" "$CFLAGS -std=c11" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
+  check_end "-std=c11"
   CFLAGS="$CFLAGS -std=c11"
-elif check c_compile "whether -std=c1x enables C11 on host" \
-           "$CC" "$CFLAGS -std=c1x" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
+elif c_compile "$CC" "$CFLAGS -std=c1x" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
+  check_end "-std=c1x"
   CFLAGS="$CFLAGS -std=c1x"
-elif check c_compile "whether C99 is default on host" \
-           "$CC" "$CFLAGS" "$CPPFLAGS -DDESIRED_VERSION=199901L" "$LDFLAGS" "$LIBS"; then
-  : # No option is needed.
-elif check c_compile "whether -std=c99 enables C99 on host" \
-           "$CC" "$CFLAGS -std=c99" "$CPPFLAGS -DDESIRED_VERSION=199901L" "$LDFLAGS" "$LIBS"; then
+elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DDESIRED_VERSION=199901L" "$LDFLAGS" "$LIBS"; then
+  check_end "(C99 fallback) enabled by default"
+elif c_compile "$CC" "$CFLAGS -std=c99" "$CPPFLAGS -DDESIRED_VERSION=199901L" "$LDFLAGS" "$LIBS"; then
+  check_end "(C99 fallback) -std=c99"
   CFLAGS="$CFLAGS -std=c99"
+else
+  check_end "unknown"
 fi
 
-if check c_compile "whether C11 is default on build" \
+check_begin "how to enable C11 on build"
+if c_compile "whether C11 is default on build" \
          "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  : # No option is needed.
-elif check c_compile "whether -std=c11 enables C11 on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c11" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  check_end "enabled by default"
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c11" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  check_end "-std=c11"
   CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c11"
-elif check c_compile "whether -std=c1x enables C11 on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c1x" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c1x" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  check_end "-std=c1x"
   CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c1x"
-elif check c_compile "whether C99 is default on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  : # No option is needed.
-elif check c_compile "whether -std=c99 enables C99 on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c99" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  check_end "(C99 fallback) enabled by default"
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c99" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  check_end "(C99 fallback) -std=c99"
   CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c99"
 fi
+
+rm -f conftest.c
 
 #
 # Determine which feature macros to pass.
 #
 
+conftest_c_asprintf() {
 cat > conftest.c << EOF
 #include <stdio.h>
 int main(void)
@@ -656,30 +658,37 @@ int main(void)
 	return func ? 0 : 1;
 }
 EOF
+}
 
-if check c_compile "whether host needs no feature macros" \
-         "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
+check_begin "for host feature macros"
+FEATURE_MACROS=""
+conftest_c_asprintf
+if c_compile "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
   : # No feature macros are needed.
-elif check c_compile "for _ALL_SOURCE support on host" \
-           "$CC" "$CFLAGS" "$CPPFLAGS -D_ALL_SOURCE" "$LDFLAGS" "$LIBS"; then
-  CPPFLAGS="$CPPFLAGS -D_ALL_SOURCE"
-elif check c_compile "for _GNU_SOURCE support on host" \
-           "$CC" "$CFLAGS" "$CPPFLAGS -D_GNU_SOURCE" "$LDFLAGS" "$LIBS"; then
-  CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -D_ALL_SOURCE" "$LDFLAGS" "$LIBS"; then
+  FEATURE_MACROS="-D_ALL_SOURCE"
+elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -D_GNU_SOURCE" "$LDFLAGS" "$LIBS"; then
+  FEATURE_MACROS="-D_GNU_SOURCE"
 fi
+CPPFLAGS="$CPPFLAGS $FEATURE_MACROS"
+[ -n "$FEATURE_MACROS" ] || FEATURE_MACROS="none needed"
+check_end "$FEATURE_MACROS"
 
-if check c_compile "whether build needs no feature macros" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+check_begin "for build feature macros"
+CPPFLAGS_FOR_BUILD="$CPPFLAGS_FOR_BUILD $FEATURE_MACROS_FOR_BUILD"
+[ -n "$FEATURE_MACROS_FOR_BUILD" ] || FEATURE_MACROS_FOR_BUILD="none needed"
+conftest_c_asprintf
+FEATURE_MACROS_FOR_BUILD=""
+if c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
   : # No feature macros are needed.
-elif check c_compile "for _ALL_SOURCE support on build" \
-          "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_ALL_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  CPPFLAGS_FOR_BUILD="$CPPFLAGS_FOR_BUILD -D_ALL_SOURCE"
-elif check c_compile "for _GNU_SOURCE support on build" \
-           "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_GNU_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  CPPFLAGS_FOR_BUILD="$CPPFLAGS_FOR_BUILD -D_GNU_SOURCE"
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_ALL_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  FEATURE_MACROS_FOR_BUILD="-D_ALL_SOURCE"
+elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_GNU_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
+  FEATURE_MACROS_FOR_BUILD="$FEATURE_MACROS_FOR_BUILD -D_GNU_SOURCE"
 fi
+check_end "$FEATURE_MACROS_FOR_BUILD"
 
-rm -f conftest
+rm -f conftest.c
 
 #
 # Determine whether _FILE_OFFSET_BITS=64 would have a good effect.
@@ -726,16 +735,17 @@ cat > conftest.c << EOF
 #endif
 EOF
 
-if check c_compile "for endian.h on host" \
-         "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
-  :
-elif check c_compile "for sys/endian.h on host" \
-           "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_SYS_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
-  echo "#include <sys/endian.h>" > endian.h
-elif check c_compile "for machine/endian.h on host" \
-           "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_MACHINE_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
-  echo "#include <machine/endian.h>" > endian.h
+check_begin "for endian.h on host"
+if c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  ENDIAN_H="endian.h"
+elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_SYS_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  ENDIAN_H="sys/endian.h"
+  echo "#include <$ENDIAN_H>" > endian.h
+elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_MACHINE_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
+  ENDIAN_H="machine/endian.h"
+  echo "#include <$ENDIAN_H>" > endian.h
 else
+  ENDIAN_H="unknown"
   cat > endian.h << EOF
 #ifndef ENDIAN_H
 #define ENDIAN_H
@@ -745,6 +755,7 @@ else
 #endif
 EOF
 fi
+check_end "$ENDIAN_H"
 
 #
 # Detect the kind of shared libaries.
