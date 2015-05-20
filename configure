@@ -102,6 +102,20 @@ EOF
   exit 0
 }
 
+imported_variables=$configuration_directory_variables'
+AR
+AR_FOR_BUILD
+CC
+CC_FOR_BUILD
+CFLAGS
+CFLAGS_FOR_BUILD
+CPPFLAGS
+CPPFLAGS_FOR_BUILD
+LDFLAGS
+LDFLAGS_FOR_BUILD
+LIBS
+LIBS_FOR_BUILD'
+
 install_directory_variables='
 bindir
 datadir
@@ -128,31 +142,30 @@ sharedstatedir
 sysconfdir
 '
 
-configuration_variables=$install_directory_variables'
+other_variables='
 build
 srcdir
 host
 target
-AR
-AR_FOR_BUILD
-CC
-CC_FOR_BUILD
-CFLAGS
-CFLAGS_FOR_BUILD
-CPPFLAGS
-CPPFLAGS_FOR_BUILD
-LDFLAGS
-LDFLAGS_FOR_BUILD
-LIBS
-LIBS_FOR_BUILD
 TARGET_ALL_PREREQUISITES
 TARGET_INSTALL_PREREQUISITES
 TARGET_INSTALL_SHARED_LIB_PREREQUISITES
 TARGET_SHARED_PREREQUISITES
 '
 
-for var in configuration_variables; do
-  unset var
+nonimported_variables="
+$install_directory_variables
+$other_variables
+"
+
+exported_variables="
+$imported_variables
+$install_directory_variables
+$other_variables
+"
+
+for var in $nonimported_variables; do
+  unset $var
 done
 
 cross_compiling=maybe
@@ -805,7 +818,7 @@ fi
 # Create the makefile.
 #
 
-(for var in $configuration_variables; do
+(for var in $exported_variables; do
   eval value=\$$var
   echo "s=@$var@=$(echo "$value" | sed 's,=,\\=,g')=g"
 done) > Makefile.sed
