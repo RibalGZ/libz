@@ -175,6 +175,7 @@ enable_shared=maybe
 dashdash=
 previous_option=
 configure_arguments=\'$(echo $0 | sed "s/'/'\\''/g")\'
+option_checking=true
 for argument do
   escaped_argument=$(echo $argument | sed "s/'/'\\''/g")
   configure_arguments="$configure_arguments '$escaped_argument'"
@@ -247,8 +248,8 @@ for argument do
   --sysconfdir=*) sysconfdir=$parameter ;;
   --target) previous_option=target ;;
   --target=*) target=$parameter ;;
-   --disable-option-checking*) ;; # TODO
-   --enable-option-checking*) ;; # TODO
+  --disable-option-checking) option_checking=false ;;
+  --enable-option-checking) option_checking=true ;;
   --disable-static | --enable-static=no) enable_static=false ;;
   --enable-static | --enable-static=yes) enable_static=true ;;
   --disable-shared | --enable-shared=no) enable_shared=false ;;
@@ -258,12 +259,16 @@ for argument do
   -h | --help | --help=*) show_help ;;
   -V | --version) show_version ;;
   -*) echo "$0: unrecognized option $argument" >&2
-      exit 1;;
-  cross_compiling=no) cross_compiling=no ;; # TODO: HACK
-  cross_compiling=maybe) cross_compiling=maybe ;; # TODO: HACK
-  cross_compiling=yes) cross_compiling=yes ;; # TODO: HACK
-  *) # TODO: It should be possible to ./configure CFLAGS=-g and such.
-     echo "$0: unexpected operand $argument" >&2
+      $option_checking && exit 1 ;;
+  *=*) envvar=`expr "x$argument" : 'x\([^=]*\)=' || true`
+       case $envvar in #(
+         '' | [0-9]* | *[!_a-zA-Z0-9]* )
+         echo "$0: invalid variable name: \`$envvar'" >&2
+         exit 1 ;;
+       esac
+       eval $envvar=\$parameter
+       export $envvar ;;
+  *) echo "$0: unexpected operand $argument" >&2
      exit 1 ;;
   esac
 done
