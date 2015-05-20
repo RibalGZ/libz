@@ -61,7 +61,6 @@ Fine tuning of the installation directories:
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
-  --oldincludedir=DIR     C header files for non-gcc [/usr/include]
   --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
   --datadir=DIR           read-only architecture-independent data [DATAROOTDIR]
   --infodir=DIR           info documentation [DATAROOTDIR/info]
@@ -119,6 +118,7 @@ libexecdir
 localedir
 localstatedir
 mandir
+oldincludedir
 pdfdir
 pkgconfigdir
 prefix
@@ -211,6 +211,8 @@ for argument do
   --localedir) previous_option=localedir ;;
   --localstatedir=*) localstatedir=$parameter ;;
   --localstatedir) previous_option=localstatedir ;;
+  --oldincludedir=*) oldincludedir=$parameter ;;
+  --oldincludedir) previous_option=oldincludedir ;;
   --mandir=*) mandir=$parameter ;;
   --mandir) previous_option=mandir ;;
   --pdfdir=*) pdfdir=$parameter ;;
