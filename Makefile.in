@@ -73,7 +73,7 @@ libz.a: $(STATIC_OBJS)
 	$(AR) -crs libz.a $(STATIC_OBJS)
 
 libz.so.$(VERSION): $(SHARED_OBJS)
-	$(CC) -shared -Wl,-soname,libz.1,--version-script,$(srcdir)/libz.map $(Z_CFLAGS) $(SHARED_OBJS) -o $@
+	$(CC) -shared -Wl,-soname,libz.so.1,--version-script,$(srcdir)/libz.map $(Z_CFLAGS) $(SHARED_OBJS) -o $@
 
 libz.so.1: libz.so.$(VERSION)
 	ln -fs libz.so.$(VERSION) $@
