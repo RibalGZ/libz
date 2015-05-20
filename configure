@@ -124,6 +124,7 @@ pkgconfigdir
 prefix
 psdir
 sbindir
+sharedstatedir
 sysconfdir
 '
 
@@ -225,6 +226,8 @@ for argument do
   --psdir=*) psdir=$parameter ;;
   --sbindir) previous_option=sbindir ;;
   --sbindir=*) sbindir=$parameter ;;
+  --sharedstatedir) previous_option=sharedstatedir ;;
+  --sharedstatedir=*) sharedstatedir=$parameter ;;
   --srcdir) previous_option=srcdir ;;
   --srcdir=*) srcdir=$parameter ;;
   --sysconfdir) previous_option=sysconfdir ;;
