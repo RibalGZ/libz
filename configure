@@ -352,12 +352,16 @@ test -n "$build" && build_tool_prefix=$build- || build_tool_prefix=
 [ -z ${localedir+x} ] && localedir="$datarootdir/locale"
 [ -z ${mandir+x} ] && mandir="$datarootdir/man"
 
+trim_whitespace() {
+  sed -e 's/^  *//' -e 's/  *$//'
+}
+
 check_begin() {
   printf "checking %s... " "$1"
 }
 
 check_end() {
-  printf "%s\n" $1
+  printf "%s\n" "$1" | trim_whitespace
 }
 
 check_begin "whether we are cross-compiling"
