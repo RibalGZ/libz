@@ -506,6 +506,8 @@ int ZEXPORT inflate(z_stream *strm,
             }
             NEEDBITS(16);
             if ((state->wrap & 2) && hold == 0x8b1f) {  /* gzip header */
+                if (state->wbits == 0)
+                    state->wbits = 15;
                 state->check = crc32(0L, NULL, 0);
                 CRC2(state->check, hold);
                 INITBITS();
