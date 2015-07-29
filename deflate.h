@@ -240,7 +240,7 @@ typedef struct internal_state {
     unsigned int matches;       /* number of string matches in current block */
     unsigned int insert;        /* bytes at end of window left to insert */
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
     unsigned long compressed_len; /* total bit length of compressed file mod 2^32 */
     unsigned long bits_sent;      /* bit length of compressed data sent mod 2^32 */
 #endif
@@ -301,7 +301,7 @@ void ZLIB_INTERNAL _tr_stored_block(deflate_state *s, char *buf,
  * used.
  */
 
-#ifndef DEBUG
+#ifndef ZLIB_DEBUG
 /* Inline versions of _tr_tally for speed: */
 
 extern const unsigned char ZLIB_INTERNAL _length_code[];

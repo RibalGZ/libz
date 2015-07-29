@@ -86,7 +86,7 @@ static void flush_pending(z_stream *strm);
 static int read_buf(z_stream *strm, unsigned char *buf, unsigned int size);
 static unsigned int longest_match(deflate_state *s, IPos cur_match);
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 static void check_match(deflate_state *s, IPos start, IPos match, int length);
 #endif
 
@@ -1153,7 +1153,7 @@ static unsigned int longest_match(deflate_state *s,
     return s->lookahead;
 }
 
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 /* ===========================================================================
  * Check that the match at match_start is indeed a match.
  */
@@ -1179,7 +1179,7 @@ static void check_match(deflate_state *s,
 }
 #else
 #  define check_match(s, start, match, length)
-#endif /* DEBUG */
+#endif /* ZLIB_DEBUG */
 
 /* ===========================================================================
  * Fill the window when the lookahead becomes insufficient.

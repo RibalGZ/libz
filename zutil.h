@@ -55,7 +55,7 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 #define OS_CODE  0x03  /* assume Unix */
 
 /* Diagnostic functions */
-#ifdef DEBUG
+#ifdef ZLIB_DEBUG
 #  include <stdio.h>
    extern ZLIB_INTERNAL int z_verbose;
    extern ZLIB_INTERNAL void z_error(char *m);
