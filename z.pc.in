@@ -9,4 +9,4 @@ Version: @VERSION@
 
 Requires:
 Libs: -L${libdir} -lz
-Cflags: -I${includedir} -I{includeexecdir}
+Cflags: -I${includedir}
