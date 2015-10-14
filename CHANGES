@@ -65,6 +65,7 @@
     deal safely with more than UINT_MAX bytes.
   * Use asprintf where appropriate.
   * Better whether-this-value-fits-in-that-type checks.
+  * Saturate instead of overflow in deflateBound and compressBound.
 * Miscellaneous changes:
   * Remove uses of the register keyword.
   * Remove EQUAL macro.

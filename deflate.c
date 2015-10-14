@@ -482,6 +482,12 @@ int ZEXPORT deflateTune(z_stream *strm,
     return Z_OK;
 }
 
+/* ========================================================================= */
+static unsigned long saturateAddBound(unsigned long a, unsigned long b)
+{
+    return ULONG_MAX - a < b ? ULONG_MAX : a + b;
+}
+
 /* =========================================================================
  * For the default windowBits of 15 and memLevel of 8, this function returns
  * a close to exact, as well as small, upper bound on the compressed size.
@@ -507,12 +513,14 @@ unsigned long ZEXPORT deflateBound(z_stream *strm,
     unsigned char *str;
 
     /* conservative upper bound for compressed data */
-    complen = sourceLen +
-              ((sourceLen + 7) >> 3) + ((sourceLen + 63) >> 6) + 5;
+    complen = sourceLen;
+    complen = saturateAddBound(complen, (sourceLen + 7) >> 3);
+    complen = saturateAddBound(complen, (sourceLen + 63) >> 6);
+    complen = saturateAddBound(complen, 5);
 
     /* if can't get parameters, return conservative bound plus zlib wrapper */
     if (strm == NULL || strm->state == NULL)
-        return complen + 6;
+        return saturateAddBound(complen, 6);
 
     /* compute wrapper length */
     s = strm->state;
@@ -526,33 +534,39 @@ unsigned long ZEXPORT deflateBound(z_stream *strm,
     case 2:                                 /* gzip wrapper */
         wraplen = 18;
         if (s->gzhead != NULL) {            /* user-supplied gzip header */
-            if (s->gzhead->extra != NULL)
-                wraplen += 2 + s->gzhead->extra_len;
+            if (s->gzhead->extra != NULL) {
+                wraplen += 2;
+                wraplen = saturateAddBound(wraplen, s->gzhead->extra_len);
+            }
             str = s->gzhead->name;
             if (str != NULL)
                 do {
-                    wraplen++;
+                    wraplen = saturateAddBound(wraplen, 1);
                 } while (*str++);
             str = s->gzhead->comment;
             if (str != NULL)
                 do {
-                    wraplen++;
+                    wraplen = saturateAddBound(wraplen, 1);
                 } while (*str++);
             if (s->gzhead->hcrc)
-                wraplen += 2;
+                wraplen = saturateAddBound(wraplen, 2);
         }
         break;
-    default:                                /* for compiler happiness */
+    default:
         wraplen = 6;
     }
 
     /* if not default parameters, return conservative bound */
     if (s->w_bits != 15 || s->hash_bits != 8 + 7)
-        return complen + wraplen;
+        return saturateAddBound(complen, wraplen);
 
     /* default settings: return tight bound for that case */
-    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
-           (sourceLen >> 25) + 13 - 6 + wraplen;
+    complen = sourceLen;
+    complen = saturateAddBound(complen, sourceLen >> 12);
+    complen = saturateAddBound(complen, sourceLen >> 14);
+    complen = saturateAddBound(complen, sourceLen >> 25);
+    complen = saturateAddBound(complen, 13 - 6);
+    return saturateAddBound(complen, wraplen);
 }
 
 /* =========================================================================

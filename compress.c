@@ -63,12 +63,22 @@ int ZEXPORT compress(unsigned char *dest,
     return compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 }
 
+/* ========================================================================= */
+static unsigned long saturateAddBound(unsigned long a, unsigned long b)
+{
+    return ULONG_MAX - a < b ? ULONG_MAX : a + b;
+}
+
 /* ===========================================================================
      If the default memLevel or windowBits for deflateInit() is changed, then
    this function needs to be updated.
  */
 unsigned long ZEXPORT compressBound(unsigned long sourceLen)
 {
-    return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) +
-           (sourceLen >> 25) + 13;
+    unsigned long complen = sourceLen;
+    complen = saturateAddBound(complen, sourceLen >> 12);
+    complen = saturateAddBound(complen, sourceLen >> 14);
+    complen = saturateAddBound(complen, sourceLen >> 25);
+    complen = saturateAddBound(complen, 13);
+    return complen;
 }
