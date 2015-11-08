@@ -340,7 +340,13 @@ test -n "$build" && build_tool_prefix=$build- || build_tool_prefix=
 [ -z ${localstatedir+x} ] && localstatedir="$prefix/var"
 [ -z ${runstatedir+x} ] && runstatedir="$localstatedir/run"
 [ -z ${includedir+x} ] && includedir="$prefix/include"
-[ -z ${includeexecdir+x} ] && includeexecdir="$exec_prefix/include"
+if [ -z ${includeexecdir+x} ]; then
+  if [ "x$prefix" = "x$exec_prefix" ]; then
+    includeexecdir="$includedir"
+  else
+    includeexecdir="$exec_prefix/include"
+  fi
+fi
 [ -z ${docdir+x} ] && docdir="$datarootdir/doc"
 [ -z ${infodir+x} ] && infodir="$datarootdir/info"
 [ -z ${htmldir+x} ] && htmldir="$docdir"
@@ -605,6 +611,7 @@ fi
 #
 # Determine how to build C11 code.
 #
+
 cat > conftest.c << EOF
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__ < DESIRED_VERSION
 #error "not c11"
