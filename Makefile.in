@@ -16,10 +16,7 @@ mandir = @mandir@
 
 VPATH = $(srcdir)
 
-# TODO: -Wno-attributes because ZLIB_INTERNAL is used wrongly a few places but
-#       this is harmless and just generates a warning.
-
-Z_CFLAGS = $(CFLAGS) -Wall -Wextra -Wno-attributes
+Z_CFLAGS = $(CFLAGS) -Wall -Wextra
 Z_CPPFLAGS = $(CPPFLAGS) -I$(srcdir) -DZ_INSIDE_LIBZ
 
 STATIC_OBJS=\

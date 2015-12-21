@@ -57,8 +57,8 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 /* Diagnostic functions */
 #ifdef DEBUG
 #  include <stdio.h>
-   extern int ZLIB_INTERNAL z_verbose;
-   extern void ZLIB_INTERNAL z_error(char *m);
+   extern ZLIB_INTERNAL int z_verbose;
+   extern ZLIB_INTERNAL void z_error(char *m);
 #  define Assert(cond,msg) {if(!(cond)) z_error(msg);}
 #  define Trace(x) {if (z_verbose>=0) fprintf x ;}
 #  define Tracev(x) {if (z_verbose>0) fprintf x ;}
@@ -74,12 +74,12 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 #  define Tracecv(c,x)
 #endif
 
-void* ZLIB_INTERNAL zcalloc(void* opaque, unsigned int items, unsigned int size);
-void ZLIB_INTERNAL zcfree(void* opaque, void* ptr);
+ZLIB_INTERNAL void* zcalloc(void* opaque, unsigned int items, unsigned int size);
+ZLIB_INTERNAL void zcfree(void* opaque, void* ptr);
 
-void* ZLIB_INTERNAL z_stream_alloc(z_stream *strm, size_t size);
-void* ZLIB_INTERNAL z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size);
-void ZLIB_INTERNAL z_stream_free(z_stream *strm, void* ptr);
+ZLIB_INTERNAL void* z_stream_alloc(z_stream *strm, size_t size);
+ZLIB_INTERNAL void* z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size);
+ZLIB_INTERNAL void z_stream_free(z_stream *strm, void* ptr);
 
 /* Reverse the bytes in a 32-bit value */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
