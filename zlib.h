@@ -1661,8 +1661,8 @@ ZEXTERN int ZEXPORT inflateBackInit_(z_stream *strm, int windowBits,
                       ZLIB_VERSION, (int)sizeof(z_stream))
 
 /* Some systems can't decide on their off_t ABI and provide both 32-bit and
-   64-bit versions. We detect whether this and provide interfaces that match
-   the current off_t. */
+   64-bit versions. We detect whether this is the case and provide interfaces
+   that match the current off_t. */
 #if defined(Z_INSIDE_LIBZ) /* libz build */
 
 ZEXTERN gzFile ZEXPORT gzopen(const char *, const char *);
