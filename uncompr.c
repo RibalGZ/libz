@@ -1,9 +1,11 @@
 /* uncompr.c -- decompress a memory buffer
- * Copyright (C) 1995-2003, 2010 Jean-loup Gailly.
+ * Copyright (C) 1995-2003, 2010, 2014 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* @(#) $Id$ */
+
+#include <limits.h>
 
 #include "zlib.h"
 
@@ -18,39 +20,53 @@
 
      uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_BUF_ERROR if there was not enough room in the output
-   buffer, or Z_DATA_ERROR if the input data was corrupted.
+   buffer, or Z_DATA_ERROR if the input data was corrupted, including if the
+   input data is an incomplete zlib stream.
 */
 int ZEXPORT uncompress(unsigned char *dest,
-                       unsigned long *destLen,
+                       unsigned long *destLenPtr,
                        const unsigned char *source,
                        unsigned long sourceLen)
 {
     z_stream stream;
     int err;
+    unsigned long destLen = *destLenPtr;
+    /* for detection of incomplete stream when *destLen == 0 */
+    unsigned char buf[1];
 
-    stream.next_in = (const unsigned char *)source;
-    stream.avail_in = (unsigned int)sourceLen;
-    if ((unsigned long)stream.avail_in != sourceLen) return Z_BUF_ERROR;
-
-    stream.next_out = dest;
-    stream.avail_out = (unsigned int)*destLen;
-    if ((unsigned long)stream.avail_out != *destLen) return Z_BUF_ERROR;
+    if (destLen == 0) {
+        dest = buf;
+        destLen = 1;
+    }
 
     stream.zalloc = (alloc_func)0;
     stream.zfree = (free_func)0;
+    stream.opaque = (void *)0;
 
     err = inflateInit(&stream);
     if (err != Z_OK) return err;
 
-    err = inflate(&stream, Z_FINISH);
-    if (err != Z_STREAM_END) {
-        inflateEnd(&stream);
-        if (err == Z_NEED_DICT || (err == Z_BUF_ERROR && stream.avail_in == 0))
-            return Z_DATA_ERROR;
-        return err;
-    }
-    *destLen = stream.total_out;
+    stream.next_in = source;
+    stream.next_out = dest;
 
-    err = inflateEnd(&stream);
-    return err;
+    do {
+        unsigned long avail_in = sourceLen - stream.total_in;
+        unsigned long avail_out = destLen - stream.total_out;
+
+        stream.avail_in = avail_in < UINT_MAX ? avail_in : UINT_MAX;
+        stream.avail_out = avail_out < UINT_MAX ? avail_out : UINT_MAX;
+        err = inflate(&stream, Z_NO_FLUSH);
+    } while (err == Z_OK);
+
+    destLen -= stream.total_out; /* Remaining space for output */
+    if (dest != buf)
+        *destLenPtr = stream.total_out;
+    else if (stream.total_out && err == Z_BUF_ERROR)
+        destLen = 1;
+
+    inflateEnd(&stream);
+    return err == Z_STREAM_END ? Z_OK :
+           err == Z_NEED_DICT ? Z_DATA_ERROR  :
+           err == Z_BUF_ERROR && destLen ? Z_DATA_ERROR :
+           err;
 }
