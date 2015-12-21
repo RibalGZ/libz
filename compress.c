@@ -1,9 +1,11 @@
 /* compress.c -- compress a memory buffer
- * Copyright (C) 1995-2005 Jean-loup Gailly.
+ * Copyright (C) 1995-2005, 2014 Jean-loup Gailly, Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* @(#) $Id$ */
+
+#include <limits.h>
 
 #include "zlib.h"
 
@@ -19,20 +21,14 @@
    Z_STREAM_ERROR if the level parameter is invalid.
 */
 int ZEXPORT compress2(unsigned char *dest,
-                      unsigned long *destLen,
+                      unsigned long *destLenPtr,
                       const unsigned char *source,
                       unsigned long sourceLen,
                       int level)
 {
     z_stream stream;
     int err;
-
-    stream.next_in = (const unsigned char *)source;
-    stream.avail_in = (unsigned int)sourceLen;
-    if ((unsigned long)stream.avail_in != sourceLen) return Z_BUF_ERROR;
-    stream.next_out = dest;
-    stream.avail_out = (unsigned int)*destLen;
-    if ((unsigned long)stream.avail_out != *destLen) return Z_BUF_ERROR;
+    unsigned long destLen = *destLenPtr;
 
     stream.zalloc = (alloc_func)0;
     stream.zfree = (free_func)0;
@@ -41,15 +37,23 @@ int ZEXPORT compress2(unsigned char *dest,
     err = deflateInit(&stream, level);
     if (err != Z_OK) return err;
 
-    err = deflate(&stream, Z_FINISH);
-    if (err != Z_STREAM_END) {
-        deflateEnd(&stream);
-        return err == Z_OK ? Z_BUF_ERROR : err;
-    }
-    *destLen = stream.total_out;
+    stream.next_in = source;
+    stream.next_out = dest;
 
-    err = deflateEnd(&stream);
-    return err;
+    do {
+        unsigned long avail_in = sourceLen - stream.total_in;
+        unsigned long avail_out = destLen - stream.total_out;
+        int flush;
+
+        stream.avail_in = avail_in < UINT_MAX ? avail_in : UINT_MAX;
+        stream.avail_out = avail_out < UINT_MAX ? avail_out : UINT_MAX;
+        flush = stream.avail_in == avail_in ? Z_FINISH : Z_NO_FLUSH;
+        err = deflate(&stream, flush);
+    } while (err == Z_OK);
+
+    *destLenPtr = stream.total_out;
+    deflateEnd(&stream);
+    return err == Z_STREAM_END ? Z_OK : err;
 }
 
 /* ===========================================================================
