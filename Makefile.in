@@ -1,13 +1,9 @@
 VERSION = 1.2.8
 
 AR = @AR@
-AR_FOR_BUILD = @AR_FOR_BUILD@
 CC = @CC@
-CC_FOR_BUILD = @CC_FOR_BUILD@
 CFLAGS = @CFLAGS@
-CFLAGS_FOR_BUILD = @CFLAGS_FOR_BUILD@
 CPPFLAGS = @CPPFLAGS@
-CPPFLAGS_FOR_BUILD = @CPPFLAGS_FOR_BUILD@
 
 srcdir = @srcdir@
 prefix = @prefix@
@@ -25,9 +21,6 @@ VPATH = $(srcdir)
 
 Z_CFLAGS = $(CFLAGS) -Wall -Wextra -Wno-attributes
 Z_CPPFLAGS = $(CPPFLAGS) -I$(srcdir) -DZ_INSIDE_LIBZ
-
-Z_CFLAGS_FOR_BUILD = $(CFLAGS_FOR_BUILD) -Wall -Wextra -Wno-attributes
-Z_CPPFLAGS_FOR_BUILD = $(CPPFLAGS_FOR_BUILD) -I$(srcdir) -DZ_INSIDE_LIBZ
 
 STATIC_OBJS=\
 adler32.o \
@@ -101,13 +94,13 @@ z.pc: $(srcdir)/z.pc.in
 	$(srcdir)/z.pc.in > z.pc
 
 gencrc32: $(srcdir)/gencrc32.c
-	$(CC_FOR_BUILD) $(Z_CFLAGS_FOR_BUILD) $(Z_CPPFLAGS_FOR_BUILD) $(srcdir)/gencrc32.c -o $@
+	$(CC) $(Z_CFLAGS) $(Z_CPPFLAGS) $(srcdir)/gencrc32.c -o $@
 
 genfixed: $(srcdir)/genfixed.c $(srcdir)/inftrees.c
-	$(CC_FOR_BUILD) $(Z_CFLAGS_FOR_BUILD) $(Z_CPPFLAGS_FOR_BUILD) $(srcdir)/genfixed.c $(srcdir)/inftrees.c -o $@
+	$(CC) $(Z_CFLAGS) $(Z_CPPFLAGS) $(srcdir)/genfixed.c $(srcdir)/inftrees.c -o $@
 
 gentrees: $(srcdir)/gentrees.c
-	$(CC_FOR_BUILD) $(Z_CFLAGS_FOR_BUILD) $(Z_CPPFLAGS_FOR_BUILD) $(srcdir)/gentrees.c -o $@
+	$(CC) $(Z_CFLAGS) $(Z_CPPFLAGS) $(srcdir)/gentrees.c -o $@
 
 sync: gencrc32 genfixed gentrees
 	./gencrc32 crc32.h

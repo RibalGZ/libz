@@ -104,17 +104,12 @@ EOF
 
 imported_variables=$configuration_directory_variables'
 AR
-AR_FOR_BUILD
 CC
-CC_FOR_BUILD
 CFLAGS
-CFLAGS_FOR_BUILD
 CPPFLAGS
-CPPFLAGS_FOR_BUILD
 LDFLAGS
-LDFLAGS_FOR_BUILD
 LIBS
-LIBS_FOR_BUILD'
+'
 
 install_directory_variables='
 bindir
@@ -326,7 +321,6 @@ case $srcdir in
 esac
 
 test -n "$host" && tool_prefix=$host- || tool_prefix=
-test -n "$build" && build_tool_prefix=$build- || build_tool_prefix=
 
 [ -z ${prefix+x} ] && prefix="/usr/local"
 [ -z ${exec_prefix+x} ] && exec_prefix="$prefix"
@@ -498,17 +492,17 @@ EOF
 }
 
 #
-# Locate the host system compiler and check if it works.
+# Locate the system compiler and check if it works.
 #
 
 if [ -z "$CC" ]; then
-  search_tool "host compiler" CC cc "${tool_prefix}" "cc gcc"
+  search_tool "compiler" CC cc "${tool_prefix}" "cc gcc"
   if [ -z "$CC" ]; then
-    echo "$0: error: no host system compiler was found"
+    echo "$0: error: no system compiler was found"
     exit 1
   fi
 else
-  search_tool_found "host compiler" "$CC"
+  search_tool_found "compiler" "$CC"
 fi
 
 if [ -z "$CFLAGS" ]; then
@@ -527,85 +521,16 @@ if [ -z "$LIBS" ]; then
   LIBS=""
 fi
 
-test_c_compiler_works "host compiler" "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"
+test_c_compiler_works "compiler" "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"
 
 if [ -z "$AR" ]; then
-  search_tool "host library archiver" AR ar "${tool_prefix}" "cc-ar gcc-ar ar"
+  search_tool "library archiver" AR ar "${tool_prefix}" "cc-ar gcc-ar ar"
   if [ -z "$AR" ]; then
-    echo "$0: error: no host library archiver compiler was found"
+    echo "$0: error: no library archiver compiler was found"
     exit 1
   fi
 else
-  search_tool_found "host library archiver" "$AR"
-fi
-
-#
-# Locate the build system compiler and check if it works.
-#
-
-test_cc_for_build=$cross_compiling
-if [ -z "$CC_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    CC_FOR_BUILD=$CC
-    search_tool_found "build compiler" "$CC_FOR_BUILD"
-  else
-    search_tool "build compiler" CC_FOR_BUILD cc "${build_tool_prefix}" "cc gcc"
-    if [ -z "$CC_FOR_BUILD" ]; then
-      echo "$0: error: no build system compiler was found"
-      exit 1
-    fi
-  fi
-else
-  search_tool_found "build compiler" "$CC_FOR_BUILD"
-fi
-
-if [ -z "$CFLAGS_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    CFLAGS_FOR_BUILD="$CFLAGS"
-  else
-    CFLAGS="-O2 -g"
-  fi
-fi
-
-if [ -z "$CPPFLAGS_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    CPPFLAGS_FOR_BUILD="$CPPFLAGS"
-  else
-    CPPFLAGS=""
-  fi
-fi
-
-if [ -z "$LDFLAGS_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    LDFLAGS_FOR_BUILD="$LDFLAGS"
-  else
-    LDFLAGS=""
-  fi
-fi
-
-if [ -z "$LIBS_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    LIBS_FOR_BUILD="$LIBS"
-  else
-    LIBS=""
-  fi
-fi
-
-test_c_compiler_works "build compiler" "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"
-
-if [ -z "$AR_FOR_BUILD" ]; then
-  if ! $cross_compiling; then
-    AR_FOR_BUILD=$AR
-    search_tool_found "build library archiver" "$AR_FOR_BUILD"
-  else
-    search_tool "build library archiver" AR_FOR_BUILD ar "${build_tool_prefix}" "cc-ar gcc-ar ar"
-    if [ -z "$AR_FOR_BUILD" ]; then
-      echo "$0: error: no build library archiver compiler was found"
-      exit 1
-    fi
-  fi
-else
-  search_tool_found "build library archiver" "$AR_FOR_BUILD"
+  search_tool_found "library archiver" "$AR"
 fi
 
 #
@@ -619,7 +544,7 @@ cat > conftest.c << EOF
 int notemptyfile;
 EOF
 
-check_begin "how to enable C11 on host"
+check_begin "how to enable C11"
 if c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
   check_end "enabled by default"
 elif c_compile "$CC" "$CFLAGS -std=c11" "$CPPFLAGS -DDESIRED_VERSION=201112L" "$LDFLAGS" "$LIBS"; then
@@ -635,23 +560,6 @@ elif c_compile "$CC" "$CFLAGS -std=c99" "$CPPFLAGS -DDESIRED_VERSION=199901L" "$
   CFLAGS="$CFLAGS -std=c99"
 else
   check_end "unknown"
-fi
-
-check_begin "how to enable C11 on build"
-if c_compile "whether C11 is default on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  check_end "enabled by default"
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c11" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  check_end "-std=c11"
-  CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c11"
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c1x" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=201112L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  check_end "-std=c1x"
-  CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c1x"
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  check_end "(C99 fallback) enabled by default"
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD -std=c99" "$CPPFLAGS_FOR_BUILD -DDESIRED_VERSION=199901L" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  check_end "(C99 fallback) -std=c99"
-  CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -std=c99"
 fi
 
 rm -f conftest.c
@@ -679,7 +587,7 @@ cat > conftest.c << EOF
 EOF
 }
 
-check_begin "for host feature macros"
+check_begin "for feature macros"
 FEATURE_MACROS=""
 conftest_c_asprintf
 if c_compile "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
@@ -696,24 +604,6 @@ fi
 CPPFLAGS="$CPPFLAGS $FEATURE_MACROS"
 [ -n "$FEATURE_MACROS" ] || FEATURE_MACROS="none needed"
 check_end "$FEATURE_MACROS"
-
-check_begin "for build feature macros"
-conftest_c_asprintf
-FEATURE_MACROS_FOR_BUILD=""
-if c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  : # No feature macros are needed.
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_ALL_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  FEATURE_MACROS_FOR_BUILD="$FEATURE_MACROS_FOR_BUILD -D_ALL_SOURCE"
-elif c_compile "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD -D_GNU_SOURCE" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-  FEATURE_MACROS_FOR_BUILD="$FEATURE_MACROS_FOR_BUILD -D_GNU_SOURCE"
-fi
-conftest_c_apple
-if c_compile "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
-  FEATURE_MACROS_FOR_BUILD="$FEATURE_MACROS_FOR_BUILD -D_DARWIN_C_SOURCE"
-fi
-CPPFLAGS_FOR_BUILD="$CPPFLAGS_FOR_BUILD $FEATURE_MACROS_FOR_BUILD"
-[ -n "$FEATURE_MACROS_FOR_BUILD" ] || FEATURE_MACROS_FOR_BUILD="none needed"
-check_end "$FEATURE_MACROS_FOR_BUILD"
 
 rm -f conftest.c
 
@@ -732,13 +622,9 @@ cat > conftest.c << EOF
 #endif
 /* Use -D_FILE_OFFSET_BITS=64. */
 EOF
-if check c_compile "for _FILE_OFFSET_BITS value needed for large files on host" \
+if check c_compile "for _FILE_OFFSET_BITS value needed for large files" \
          "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
   CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-fi
-if check c_compile "for _FILE_OFFSET_BITS value needed for large files on build" \
-         "$CC_FOR_BUILD" "$CFLAGS_FOR_BUILD" "$CPPFLAGS_FOR_BUILD" "$LDFLAGS_FOR_BUILD" "$LIBS_FOR_BUILD"; then
-    CPPFLAGS_FOR_BUILD="$CPPFLAGS_FOR_BUILD -D_FILE_OFFSET_BITS=64"
 fi
 rm -f conftest.c
 
@@ -762,7 +648,7 @@ cat > conftest.c << EOF
 #endif
 EOF
 
-check_begin "for endian.h on host"
+check_begin "for endian.h"
 if c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
   ENDIAN_H="endian.h"
 elif c_compile "$CC" "$CFLAGS" "$CPPFLAGS -DTRY_SYS_ENDIAN_H" "$LDFLAGS" "$LIBS"; then
@@ -793,15 +679,10 @@ cat > conftest.c << EOF
 #error "this system doesn't use dylib"
 #endif
 EOF
-host_shared_library_type=so
-if check c_compile "whether shared libraries are dylib on host" \
+shared_library_type=so
+if check c_compile "whether shared libraries are dylib" \
          "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
-  host_shared_library_type=dylib
-fi
-build_shared_library_type=so
-if check c_compile "whether shared libraries are dylib on build" \
-         "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
-  build_shared_library_type=dylib
+  shared_library_type=dylib
 fi
 rm -f conftest.c
 
@@ -818,7 +699,7 @@ if [ $enable_shared = maybe ]; then
   cat > conftest.c << EOF
 int footest(int input) { return input + 42; }
 EOF
-  if [ $host_shared_library_type = dylib ]; then
+  if [ $shared_library_type = dylib ]; then
     if check c_compile_link_dylib "whether shared libraries work" \
              "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
       enable_shared=true
@@ -844,7 +725,7 @@ if [ $enable_static = true ]; then
   TARGET_INSTALL_PREREQUISITES="$TARGET_INSTALL_PREREQUISITES install-static"
 fi
 
-if [ $host_shared_library_type = dylib ]; then
+if [ $shared_library_type = dylib ]; then
   TARGET_SHARED_PREREQUISITES="libz.dylib"
   TARGET_INSTALL_SHARED_LIB_PREREQUISITES="install-shared-lib-dylib"
 else
