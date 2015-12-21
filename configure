@@ -474,25 +474,8 @@ check() {
   fi
 }
 
-test_c_compiler_works() {
-  cat > conftest.c << EOF
-#include <stdio.h>
-int main(void)
-{
-	printf("Hello, World!\n");
-	return 0;
-}
-EOF
-  if ! check c_compile_link "whether $1 works" $2 $3 $4 $5 $6; then
-    rm -f conftest.c
-    echo "$0: error: the compiler doesn't work"
-    exit 1
-  fi
-  rm -f conftest.c
-}
-
 #
-# Locate the system compiler and check if it works.
+# Locate the system compiler.
 #
 
 if [ -z "$CC" ]; then
@@ -521,7 +504,30 @@ if [ -z "$LIBS" ]; then
   LIBS=""
 fi
 
-test_c_compiler_works "compiler" "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"
+#
+# Check if the system compiler works.
+#
+
+cat > conftest.c << EOF
+#include <stdio.h>
+int main(void)
+{
+	printf("Hello, World!\n");
+	return 0;
+}
+EOF
+
+if ! check c_compile_link "whether compiler works" "$CC" "$CFLAGS" "$CPPFLAGS" "$LDFLAGS" "$LIBS"; then
+  rm -f conftest.c
+  echo "$0: error: the compiler doesn't work"
+  exit 1
+fi
+
+rm -f conftest.c
+
+#
+# Search for the library archiver.
+#
 
 if [ -z "$AR" ]; then
   search_tool "library archiver" AR ar "${tool_prefix}" "cc-ar gcc-ar ar"
