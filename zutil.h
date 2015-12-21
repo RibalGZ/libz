@@ -74,12 +74,12 @@ extern const char * const z_errmsg[]; /* indexed by 2-zlib_error */
 #  define Tracecv(c,x)
 #endif
 
-ZLIB_INTERNAL void* zcalloc(void* opaque, unsigned int items, unsigned int size);
-ZLIB_INTERNAL void zcfree(void* opaque, void* ptr);
+ZLIB_INTERNAL void *zcalloc(void *opaque, unsigned int items, unsigned int size);
+ZLIB_INTERNAL void zcfree(void *opaque, void *ptr);
 
-ZLIB_INTERNAL void* z_stream_alloc(z_stream *strm, size_t size);
-ZLIB_INTERNAL void* z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size);
-ZLIB_INTERNAL void z_stream_free(z_stream *strm, void* ptr);
+ZLIB_INTERNAL void *z_stream_alloc(z_stream *strm, size_t size);
+ZLIB_INTERNAL void *z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size);
+ZLIB_INTERNAL void z_stream_free(z_stream *strm, void *ptr);
 
 /* Reverse the bytes in a 32-bit value */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \

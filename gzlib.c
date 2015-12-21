@@ -23,7 +23,7 @@ static void gz_reset(gz_state *state)
 /* Open a gzip file either by name or file descriptor. */
 static gzFile gz_open(const char *path,
                       int fd,
-                      const char* mode)
+                      const char *mode)
 {
     gz_state *state;
     int oflag;
@@ -185,7 +185,7 @@ gzFile ZEXPORT gzdopen(int fd,
     if ( fd < 0 )
         return NULL;
 
-    char* path;
+    char *path;
     if ( asprintf(&path, "<fd:%d>", fd) < 0 )
         return NULL;
 
@@ -477,7 +477,7 @@ void ZLIB_INTERNAL gz_error(gz_state *state,
     if (err == Z_MEM_ERROR)
         return;
 
-    char* state_msg;
+    char *state_msg;
     if ( asprintf(&state_msg, "%s: %s", state->path, msg) < 0 ) {
         state->err = Z_MEM_ERROR;
         return;

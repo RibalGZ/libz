@@ -272,7 +272,7 @@ static int gz_skip(gz_state *state,
 
 /* -- see zlib.h -- */
 int ZEXPORT gzread(gzFile file,
-                   void* buf,
+                   void *buf,
                    unsigned int len)
 {
     unsigned int got, n;

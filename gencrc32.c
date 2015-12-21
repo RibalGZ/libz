@@ -45,9 +45,9 @@
   allow for word-at-a-time CRC calculation for both big-endian and little-
   endian machines, where a word is four bytes.
 */
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    const char* out_path = NULL;
+    const char *out_path = NULL;
     if (2 <= argc) {
         if (!(freopen(out_path = argv[1], "w", stdout))) {
             fprintf(stderr, "%s: %s: %s\n", argv[0], out_path, strerror(errno));

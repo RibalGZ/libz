@@ -98,7 +98,7 @@ const char * ZEXPORT zError(int err)
 /* This function is only for outward appearances in case an application looks
    too closely at strm->zalloc. The internal allocator (z_stream_alloc) notices
    if this one is used and uses the system allocator instead. */
-ZLIB_INTERNAL void* zcalloc(void *opaque, unsigned int items, unsigned int size)
+ZLIB_INTERNAL void *zcalloc(void *opaque, unsigned int items, unsigned int size)
 {
     (void) opaque;
     return calloc((size_t) items, (size_t) size);
@@ -113,7 +113,7 @@ ZLIB_INTERNAL void zcfree(void *opaque, void *ptr)
     free(ptr);
 }
 
-ZLIB_INTERNAL void* z_stream_alloc(z_stream *strm, size_t size)
+ZLIB_INTERNAL void *z_stream_alloc(z_stream *strm, size_t size)
 {
     if (size == 0)
         size = 1;
@@ -129,14 +129,14 @@ ZLIB_INTERNAL void* z_stream_alloc(z_stream *strm, size_t size)
     return strm->zalloc(strm->opaque, (unsigned int) size, 1);
 }
 
-ZLIB_INTERNAL void* z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size)
+ZLIB_INTERNAL void *z_stream_allocarray(z_stream *strm, size_t nmemb, size_t size)
 {
     if (size && nmemb && SIZE_MAX / size < nmemb)
-        return errno = ENOMEM, (void*) NULL;
+        return errno = ENOMEM, (void *) NULL;
     return z_stream_alloc(strm, nmemb * size);
 }
 
-ZLIB_INTERNAL void z_stream_free(z_stream *strm, void* ptr)
+ZLIB_INTERNAL void z_stream_free(z_stream *strm, void *ptr)
 {
     if (strm->zfree == (free_func)0 || strm->zfree == zcfree) {
         free(ptr);

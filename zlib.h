@@ -79,8 +79,8 @@ extern "C" {
   even in case of corrupted input.
 */
 
-typedef void* (*alloc_func)(void* opaque, unsigned int items, unsigned int size);
-typedef void   (*free_func)(void* opaque, void* address);
+typedef void *(*alloc_func)(void *opaque, unsigned int items, unsigned int size);
+typedef void   (*free_func)(void *opaque, void *address);
 
 struct internal_state;
 
@@ -98,7 +98,7 @@ typedef struct z_stream_s {
 
     alloc_func zalloc;  /* used to allocate the internal state */
     free_func  zfree;   /* used to free the internal state */
-    void*      opaque;  /* private data object passed to zalloc and zfree */
+    void      *opaque;  /* private data object passed to zalloc and zfree */
 
     int     data_type;  /* best guess about the data type: binary or text */
     unsigned long   adler;      /* adler32 value of the uncompressed data */
@@ -1303,7 +1303,7 @@ ZEXTERN int ZEXPORT gzsetparams(gzFile file, int level, int strategy);
    opened for writing.
 */
 
-ZEXTERN int ZEXPORT gzread(gzFile file, void* buf, unsigned int len);
+ZEXTERN int ZEXPORT gzread(gzFile file, void *buf, unsigned int len);
 /*
      Reads the given number of uncompressed bytes from the compressed file.  If
    the input file is not in gzip format, gzread copies the given number of
@@ -1596,7 +1596,7 @@ ZEXTERN unsigned long ZEXPORT adler32_combine(unsigned long adler1,
 */
 
 ZEXTERN unsigned long ZEXPORT crc32(unsigned long crc,
-                                    const unsigned char* buf,
+                                    const unsigned char *buf,
                                     unsigned int len);
 /*
      Update a running CRC-32 with the bytes buf[0..len-1] and return the

@@ -45,9 +45,9 @@ static void fixedtables(struct inflate_state *state)
     state->distbits = 5;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    const char* out_path = NULL;
+    const char *out_path = NULL;
     if (2 <= argc) {
         if (!(freopen(out_path = argv[1], "w", stdout))) {
             fprintf(stderr, "%s: %s: %s\n", argv[0], out_path, strerror(errno));
