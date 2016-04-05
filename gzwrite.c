@@ -80,12 +80,15 @@ static int gz_comp(gz_state *state,
 
     /* write directly if requested */
     if (state->direct) {
-        got = write(state->fd, strm->next_in, strm->avail_in);
-        if (got < 0 || (unsigned int)got != strm->avail_in) {
-            gz_error(state, Z_ERRNO, strerror(errno));
-            return -1;
+        while (strm->avail_in) {
+            got = write(state->fd, strm->next_in, strm->avail_in);
+            if (got < 0) {
+                gz_error(state, Z_ERRNO, strerror(errno));
+                return -1;
+            }
+            strm->avail_in -= got;
+            strm->next_in += got;
         }
-        strm->avail_in = 0;
         return 0;
     }
 
@@ -96,17 +99,19 @@ static int gz_comp(gz_state *state,
            doing Z_FINISH then don't write until we get to Z_STREAM_END */
         if (strm->avail_out == 0 || (flush != Z_NO_FLUSH &&
             (flush != Z_FINISH || ret == Z_STREAM_END))) {
-            have = (unsigned int)(strm->next_out - state->x.next);
-            if (have && ((got = write(state->fd, state->x.next, have)) < 0 ||
-                         (unsigned int)got != have)) {
-                gz_error(state, Z_ERRNO, strerror(errno));
-                return -1;
+            while (strm->next_out > state->x.next) {
+                got = write(state->fd, state->x.next,
+                            strm->next_out - state->x.next);
+                if (got < 0) {
+                    gz_error(state, Z_ERRNO, strerror(errno));
+                    return -1;
+                }
+                state->x.next += got;
             }
             if (strm->avail_out == 0) {
                 strm->avail_out = state->size;
                 strm->next_out = state->out;
             }
-            state->x.next = strm->next_out;
         }
 
         /* compress */
