@@ -1743,6 +1743,7 @@ ZEXTERN const char    * ZEXPORT zError(int);
 ZEXTERN int             ZEXPORT inflateSyncPoint(z_stream *);
 ZEXTERN const z_crc_t * ZEXPORT get_crc_table(void);
 ZEXTERN int             ZEXPORT inflateUndermine(z_stream *, int);
+ZEXTERN int             ZEXPORT inflateValidate(z_stream *, int);
 ZEXTERN unsigned long   ZEXPORT inflateCodesUsed(z_stream *);
 ZEXTERN int             ZEXPORT inflateResetKeep(z_stream *);
 ZEXTERN int             ZEXPORT deflateResetKeep(z_stream *);
