@@ -51,7 +51,7 @@ int ZEXPORT inflateBackInit_(z_stream *strm,
     Tracev((stderr, "inflate: allocated\n"));
     strm->state = (struct internal_state *)state;
     state->dmax = 32768U;
-    state->wbits = windowBits;
+    state->wbits = (unsigned int)windowBits;
     state->wsize = 1U << windowBits;
     state->window = window;
     state->wnext = 0;

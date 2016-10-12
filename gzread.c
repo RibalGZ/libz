@@ -22,14 +22,14 @@ static int gz_load(gz_state *state,
                    unsigned int len,
                    unsigned int *have)
 {
-    int ret;
+    ssize_t ret;
 
     *have = 0;
     do {
         ret = read(state->fd, buf + *have, len - *have);
         if (ret <= 0)
             break;
-        *have += ret;
+        *have += (unsigned int)ret;
     } while (*have < len);
     if (ret < 0) {
         gz_error(state, Z_ERRNO, strerror(errno));
@@ -429,7 +429,7 @@ int ZEXPORT gzungetc(int c,
     if (state->x.have == 0) {
         state->x.have = 1;
         state->x.next = state->out + (state->size << 1) - 1;
-        state->x.next[0] = c;
+        state->x.next[0] = (unsigned char)c;
         state->x.pos--;
         state->past = 0;
         return c;
@@ -451,7 +451,7 @@ int ZEXPORT gzungetc(int c,
     }
     state->x.have++;
     state->x.next--;
-    state->x.next[0] = c;
+    state->x.next[0] = (unsigned char)c;
     state->x.pos--;
     state->past = 0;
     return c;

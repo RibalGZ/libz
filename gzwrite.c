@@ -70,7 +70,8 @@ static int gz_init(gz_state *state)
 static int gz_comp(gz_state *state,
                    int flush)
 {
-    int ret, got;
+    int ret;
+    ssize_t got;
     unsigned int have;
     z_stream *strm = &state->strm;
 
@@ -86,7 +87,7 @@ static int gz_comp(gz_state *state,
                 gz_error(state, Z_ERRNO, strerror(errno));
                 return -1;
             }
-            strm->avail_in -= got;
+            strm->avail_in -= (unsigned int)got;
             strm->next_in += got;
         }
         return 0;
@@ -274,9 +275,9 @@ int ZEXPORT gzputc(gzFile file,
     if (state->size) {
         if (strm->avail_in == 0)
             strm->next_in = state->in;
-        have = (unsigned)((strm->next_in + strm->avail_in) - state->in);
+        have = (unsigned int)((strm->next_in + strm->avail_in) - state->in);
         if (have < state->size) {
-            state->in[have] = c;
+            state->in[have] = (unsigned char)c;
             strm->avail_in++;
             state->x.pos++;
             return c & 0xff;
@@ -284,7 +285,7 @@ int ZEXPORT gzputc(gzFile file,
     }
 
     /* no room in buffer or not initialized, use gz_write() */
-    buf[0] = c;
+    buf[0] = (unsigned char)c;
     if (gzwrite(file, buf, 1) != 1)
         return -1;
     return c & 0xff;

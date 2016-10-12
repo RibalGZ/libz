@@ -83,7 +83,8 @@ static block_state deflate_huff(deflate_state *s, int flush);
 static void lm_init(deflate_state *s);
 static void putShortMSB(deflate_state *s, unsigned int b);
 static void flush_pending(z_stream *strm);
-static int read_buf(z_stream *strm, unsigned char *buf, unsigned int size);
+static unsigned int read_buf(z_stream *strm, unsigned char *buf,
+                             unsigned int size);
 static unsigned int longest_match(deflate_state *s, IPos cur_match);
 
 #ifdef ZLIB_DEBUG
@@ -233,11 +234,11 @@ int ZEXPORT deflateInit2_(z_stream *strm,
 
     s->wrap = wrap;
     s->gzhead = NULL;
-    s->w_bits = windowBits;
+    s->w_bits = (unsigned int)windowBits;
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
 
-    s->hash_bits = memLevel + 7;
+    s->hash_bits = (unsigned int)memLevel + 7;
     s->hash_size = 1 << s->hash_bits;
     s->hash_mask = s->hash_size - 1;
     s->hash_shift =  ((s->hash_bits+MIN_MATCH-1)/MIN_MATCH);
@@ -474,10 +475,10 @@ int ZEXPORT deflateTune(z_stream *strm,
 
     if (strm == NULL || strm->state == NULL) return Z_STREAM_ERROR;
     s = strm->state;
-    s->good_match = good_length;
-    s->max_lazy_match = max_lazy;
+    s->good_match = (unsigned int)good_length;
+    s->max_lazy_match = (unsigned int)max_lazy;
     s->nice_match = nice_length;
-    s->max_chain_length = max_chain;
+    s->max_chain_length = (unsigned int)max_chain;
     return Z_OK;
 }
 
@@ -998,9 +999,9 @@ int ZEXPORT deflateCopy(z_stream *dest,
  * allocating a large strm->next_in buffer and copying from it.
  * (See also flush_pending()).
  */
-static int read_buf(z_stream *strm,
-                    unsigned char *buf,
-                    unsigned int size)
+static unsigned int read_buf(z_stream *strm,
+                             unsigned char *buf,
+                             unsigned int size)
 {
     unsigned int len = strm->avail_in;
 
@@ -1018,7 +1019,7 @@ static int read_buf(z_stream *strm,
     strm->next_in  += len;
     strm->total_in += len;
 
-    return (int)len;
+    return len;
 }
 
 /* ===========================================================================
@@ -1066,7 +1067,7 @@ static unsigned int longest_match(deflate_state *s,
     unsigned char *scan = s->window + s->strstart;   /* current string */
     unsigned char *match;                       /* matched string */
     int len;                                    /* length of current match */
-    int best_len = s->prev_length;              /* best match length so far */
+    int best_len = (int)s->prev_length;         /* best match length so far */
     int nice_match = s->nice_match;             /* stop if match long enough */
     IPos limit = s->strstart > (IPos)MAX_DIST(s) ?
         s->strstart - (IPos)MAX_DIST(s) : NIL;
@@ -1092,7 +1093,7 @@ static unsigned int longest_match(deflate_state *s,
     /* Do not look for matches beyond the end of the input. This is necessary
      * to make deflate deterministic.
      */
-    if ((unsigned int)nice_match > s->lookahead) nice_match = s->lookahead;
+    if ((unsigned int)nice_match > s->lookahead) nice_match = (int)s->lookahead;
 
     Assert((unsigned long)s->strstart <= s->window_size-MIN_LOOKAHEAD, "need lookahead");
 
@@ -1378,7 +1379,7 @@ static block_state deflate_stored(deflate_state *s,
         s->lookahead = 0;
 
         /* Emit a stored block if pending_buf will be full: */
-        max_start = s->block_start + max_block_size;
+        max_start = s->block_start + (unsigned long)max_block_size;
         if (s->strstart == 0 || (unsigned long)s->strstart >= max_start) {
             /* strstart == 0 is possible when wraparound on 16-bit machine */
             s->lookahead = (unsigned int)(s->strstart - max_start);
@@ -1668,7 +1669,7 @@ static block_state deflate_rle(deflate_state *s,
                          prev == *++scan && prev == *++scan &&
                          prev == *++scan && prev == *++scan &&
                          scan < strend);
-                s->match_length = MAX_MATCH - (int)(strend - scan);
+                s->match_length = MAX_MATCH - (unsigned int)(strend - scan);
                 if (s->match_length > s->lookahead)
                     s->match_length = s->lookahead;
             }

@@ -171,7 +171,7 @@ static void send_bits(deflate_state *s, int value, int length)
 #define send_bits(s, value, length) \
 { int len = length;\
   if (s->bi_valid > (int)Buf_size - len) {\
-    int val = value;\
+    int val = (int)value;\
     s->bi_buf |= (unsigned short)val << s->bi_valid;\
     put_short(s, s->bi_buf);\
     s->bi_buf = (unsigned short)val >> (Buf_size - s->bi_valid);\
@@ -327,8 +327,10 @@ static void gen_bitlen(deflate_state *s,
         xbits = 0;
         if (n >= base) xbits = extra[n-base];
         f = tree[n].Freq;
-        s->opt_len += (unsigned long)f * (bits + xbits);
-        if (stree) s->static_len += (unsigned long)f * (stree[n].Len + xbits);
+        s->opt_len += (unsigned long)f * (unsigned int)(bits + xbits);
+        if (stree)
+            s->static_len += (unsigned long)f *
+                             (unsigned int)(stree[n].Len + xbits);
     }
     if (overflow == 0) return;
 
@@ -358,10 +360,10 @@ static void gen_bitlen(deflate_state *s,
         while (n != 0) {
             m = s->heap[--h];
             if (m > max_code) continue;
-            if ((unsigned int) tree[m].Len != (unsigned int) bits) {
+            if ((unsigned int)tree[m].Len != (unsigned int)bits) {
                 Trace((stderr,"code %d bits %d->%d\n", m, tree[m].Len, bits));
-                s->opt_len += ((long)bits - (long)tree[m].Len)
-                              *(long)tree[m].Freq;
+                s->opt_len += ((unsigned long)bits - tree[m].Len) *
+                              tree[m].Freq;
                 tree[m].Len = (unsigned short)bits;
             }
             n--;
@@ -383,7 +385,7 @@ static void gen_codes(
     unsigned short *bl_count   /* number of codes at each bit length */)
 {
     unsigned short next_code[MAX_BITS+1]; /* next code value for each bit length */
-    unsigned short code = 0;   /* running code value */
+    unsigned int code = 0;     /* running code value */
     int bits;                  /* bit index */
     int n;                     /* code index */
 
@@ -391,7 +393,8 @@ static void gen_codes(
      * without bit reversal.
      */
     for (bits = 1; bits <= MAX_BITS; bits++) {
-        next_code[bits] = code = (code + bl_count[bits-1]) << 1;
+        code = (code + bl_count[bits-1]) << 1;
+        next_code[bits] = (unsigned short)code;
     }
     /* Check that the bit counts in bl_count are consistent. The last code
      * must be all ones.
@@ -404,7 +407,7 @@ static void gen_codes(
         int len = tree[n].Len;
         if (len == 0) continue;
         /* Now reverse the bits */
-        tree[n].Code = bi_reverse(next_code[len]++, len);
+        tree[n].Code = (unsigned short)bi_reverse(next_code[len]++, len);
 
         Tracecv(tree != static_ltree, (stderr,"\nn %3d %c l %2d c %4x (%x) ",
              n, (isgraph(n) ? n : ' '), len, tree[n].Code, next_code[len]-1));
@@ -624,7 +627,7 @@ static int build_bl_tree(deflate_state *s)
         if (s->bl_tree[bl_order[max_blindex]].Len != 0) break;
     }
     /* Update opt_len to include the bit length tree and counts */
-    s->opt_len += 3*(max_blindex+1) + 5+5+4;
+    s->opt_len += 3*((unsigned long)max_blindex+1) + 5+5+4;
     Tracev((stderr, "\ndyn trees: dyn %ld, stat %ld",
             s->opt_len, s->static_len));
 
@@ -838,7 +841,7 @@ int ZLIB_INTERNAL _tr_tally(
         unsigned long in_length = (unsigned long)((long)s->strstart - s->block_start);
         int dcode;
         for (dcode = 0; dcode < D_CODES; dcode++) {
-            out_length += (ulg)s->dyn_dtree[dcode].Freq *
+            out_length += (unsigned long)s->dyn_dtree[dcode].Freq *
                 (5L+extra_dbits[dcode]);
         }
         out_length >>= 3;
@@ -891,7 +894,7 @@ static void compress_block(
             send_code(s, code, dtree);       /* send the distance code */
             extra = extra_dbits[code];
             if (extra != 0) {
-                dist -= base_dist[code];
+                dist -= (unsigned)base_dist[code];
                 send_bits(s, dist, extra);   /* send the extra distance bits */
             }
         } /* literal or match pair ? */
