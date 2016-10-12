@@ -1345,7 +1345,7 @@ long ZEXPORT inflateMark(z_stream *strm)
     struct inflate_state *state;
 
     if (strm == NULL || strm->state == NULL)
-        return (long)(((unsigned long)0 - 1) << 16);
+        return -(1L << 16);
     state = (struct inflate_state *)strm->state;
     return (long)(((unsigned long)((long)state->back)) << 16) +
         (state->mode == COPY ? state->length :
