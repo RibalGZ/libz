@@ -117,8 +117,6 @@ static int  detect_data_type(deflate_state *s);
 static unsigned int bi_reverse(unsigned int value, int length);
 static void bi_windup(deflate_state *s);
 static void bi_flush(deflate_state *s);
-static void copy_block(deflate_state *s, char *buf, unsigned int len,
-                       int header);
 
 #ifndef ZLIB_DEBUG
 #  define send_code(s, c, tree) send_bits(s, tree[c].Code, tree[c].Len)
@@ -675,11 +673,17 @@ void ZLIB_INTERNAL _tr_stored_block(
     int last                    /* one if this is the last block for a file */)
 {
     send_bits(s, (STORED_BLOCK<<1)+last, 3);    /* send block type */
+    bi_windup(s);        /* align on byte boundary */
+    put_short(s, (unsigned short)stored_len);
+    put_short(s, (unsigned short)~stored_len);
+    memcpy(s->pending_buf + s->pending, buf, stored_len);
+    s->pending += stored_len;
 #ifdef ZLIB_DEBUG
     s->compressed_len = (s->compressed_len + 3 + 7) & (unsigned long)~7L;
     s->compressed_len += (stored_len + 4) << 3;
+    s->bits_sent += 2*16;
+    s->bits_sent += stored_len<<3;
 #endif
-    copy_block(s, buf, (unsigned)stored_len, 1); /* with header */
 }
 
 /* ===========================================================================
@@ -997,31 +1001,4 @@ static void bi_windup(deflate_state *s)
 #ifdef ZLIB_DEBUG
     s->bits_sent = (s->bits_sent+7) & ~7;
 #endif
-}
-
-/* ===========================================================================
- * Copy a stored block, storing first the length and its
- * one's complement if requested.
- */
-static void copy_block(
-    deflate_state *s,
-    char          *buf,    /* the input data */
-    unsigned int   len,    /* its length */
-    int            header  /* true if block header must be written */)
-{
-    bi_windup(s);        /* align on byte boundary */
-
-    if (header) {
-        put_short(s, (unsigned short)len);
-        put_short(s, (unsigned short)~len);
-#ifdef ZLIB_DEBUG
-        s->bits_sent += 2*16;
-#endif
-    }
-#ifdef ZLIB_DEBUG
-    s->bits_sent += (unsigned long)len<<3;
-#endif
-    while (len--) {
-        put_byte(s, *buf++);
-    }
 }
